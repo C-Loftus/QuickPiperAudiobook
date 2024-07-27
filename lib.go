@@ -24,7 +24,7 @@ func downloadIfNotExists(fileURL, fileName string) error {
 
 func DownloadFile(url string, filename string) (*os.File, error) {
 
-	print("Downloading " + filename)
+	println("Downloading " + filename)
 
 	// Create the file to save the model
 	file, err := os.Create(filename)
@@ -51,7 +51,7 @@ func DownloadFile(url string, filename string) (*os.File, error) {
 		return nil, fmt.Errorf("error saving file %s: %v", filename, err)
 	}
 
-	fmt.Println("Downloaded successfully.")
+	fmt.Println("Finished downloading successfully.")
 
 	return file, nil
 }

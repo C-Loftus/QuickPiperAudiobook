@@ -3,16 +3,21 @@ package main
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/alecthomas/kong"
+	"github.com/briandowns/spinner"
+	"github.com/fatih/color"
+	"github.com/gen2brain/beeep"
 )
 
-func ConvertEbook(inputPath string) (io.Reader, error) {
+func getConvertedRawText(inputPath string) (io.Reader, error) {
 	// Ensure input file exists
 	if _, err := os.Stat(inputPath); os.IsNotExist(err) {
 		// If the file does not exist, check if it's a URL
@@ -41,7 +46,9 @@ func ConvertEbook(inputPath string) (io.Reader, error) {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	// Build the ebook-convert command
+	c := color.New(color.Bold, color.FgMagenta)
+	c.Println("Converting " + filepath.Base(inputPath) + " to the proper text format...")
+
 	cmd := exec.Command("ebook-convert", inputPath, tmpFile.Name())
 
 	output, err := cmd.CombinedOutput()
@@ -113,7 +120,10 @@ func checkEbookConvertInstalled() error {
 
 func grabModel(modelName string) error {
 
-	modelURL := modelToURL[modelName]
+	modelURL, ok := modelToURL[modelName]
+	if !ok {
+		return fmt.Errorf("model not found: %s", modelName)
+	}
 	modelJSONURL := modelURL + ".json"
 
 	// Download the model
@@ -167,12 +177,6 @@ func findModels(dir string) ([]string, error) {
 }
 
 func runPiper(filename string, model string, text io.Reader) error {
-	fmt.Println("Running piper on " + filename)
-
-	// buf := new(strings.Builder)
-	// _, err := io.Copy(buf, text)
-	// // check errors
-	// fmt.Println(buf.String())
 
 	// Get the current working directory
 	currentDir, err := os.Getwd()
@@ -186,7 +190,7 @@ func runPiper(filename string, model string, text io.Reader) error {
 	// Define the path to the 'piper' executable within the 'piper' directory
 	piperExecutable := filepath.Join(piperDir, "piper")
 
-	fmt.Println("piper executable path: " + piperExecutable)
+	slog.Debug("piper executable path: " + piperExecutable)
 
 	// Output name is equal to the filename with .wav instead of the extension
 	outputName := strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename)) + ".wav"
@@ -209,16 +213,24 @@ func runPiper(filename string, model string, text io.Reader) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	// Print command details
-	print("Running command: "+strings.Join(cmd.Args, " "), "\n")
+	slog.Debug("Running command: " + strings.Join(cmd.Args, " "))
+
+	c := color.New(color.Bold, color.FgMagenta, color.BlinkRapid)
+
+	c.Println("Converting "+filename+"to an audiobook...", "This may take a while!")
+	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
+	s.Start()                                                   // Start the spinner
 
 	// Capture output
 	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("failed to run piper command: %v", err)
 	}
+	s.Stop()
 
-	fmt.Println("Done. Saved audiobook as", abs)
+	color.New(color.Bold, color.FgGreen).Println("Done. Saved audiobook as " + abs)
+
+	beeep.Alert("Audiobook created", "Check the terminal for more info", "")
 
 	return nil
 }
@@ -240,13 +252,18 @@ func main() {
 	}
 
 	if cli.Model == "" {
-		cli.Model = "en_US-lessac-medium.onnx"
+		defaultModel := "en_US-hfc_male-medium.onnx"
+		println("No model specified. Defaulting to " + defaultModel)
+		cli.Model = defaultModel
 	}
 
-	if err := checkEbookConvertInstalled(); err != nil {
-		fmt.Printf("Error: %v\n", err)
-		ctx.FatalIfErrorf(err)
-		return
+	if (filepath.Ext(cli.Input)) != ".txt" {
+
+		if err := checkEbookConvertInstalled(); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			ctx.FatalIfErrorf(err)
+			return
+		}
 	}
 
 	// Check if piper is installed and prompt to install if not
@@ -264,7 +281,11 @@ func main() {
 		return
 	}
 
-	fmt.Println("Models found: " + strings.Join(models, ", "))
+	if len(models) == 0 {
+		fmt.Println("No models found locally")
+	} else {
+		fmt.Println("Local models found: [ " + strings.TrimSpace(strings.Join(models, " , ")) + " ]")
+	}
 
 	err = grabModel(cli.Model)
 	if err != nil {
@@ -273,22 +294,19 @@ func main() {
 		return
 	}
 
-	// Execute the ebook conversion
-	data, err := ConvertEbook(cli.Input)
+	data, err := getConvertedRawText(cli.Input)
 
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		ctx.FatalIfErrorf(err)
 	} else {
-		fmt.Println("Ebook conversion completed successfully.")
+		fmt.Println("Text conversion completed successfully.")
 	}
 
 	err = runPiper(cli.Input, cli.Model, data)
 
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		ctx.FatalIfErrorf(err)
-	} else {
-		fmt.Println("Piper completed successfully.")
+		color.Red("Error: %v", err)
+		return
 	}
 }

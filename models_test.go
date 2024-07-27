@@ -4,8 +4,6 @@ import (
 	"testing"
 )
 
-// TestHelloName calls greetings.Hello with a name, checking
-// for a valid return value.
 func TestModels(t *testing.T) {
 
 	if err := grabModel("en_US-hfc_male-medium.onnx"); err != nil {
