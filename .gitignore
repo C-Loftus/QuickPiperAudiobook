@@ -1,0 +1,11 @@
+piper/
+
+*tar.gz
+
+*.txt
+
+*.onnx
+
+*.onnx.json
+
+*.wav
