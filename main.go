@@ -104,7 +104,7 @@ func installPiper() error {
 func checkEbookConvertInstalled() error {
 	_, err := exec.LookPath("ebook-convert")
 	if err != nil {
-		return fmt.Errorf("ebook-convert not found in PATH. Please install it with your package manager")
+		return fmt.Errorf("the ebook-convert command was not found in your PATH. Please install it with your package manager")
 	}
 
 	return nil
