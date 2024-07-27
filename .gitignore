@@ -9,3 +9,5 @@ piper/
 *.onnx.json
 
 *.wav
+
+QuickPiperAudiobook
