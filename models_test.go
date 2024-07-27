@@ -8,7 +8,7 @@ import (
 // for a valid return value.
 func TestModels(t *testing.T) {
 
-	if err := grabModel(); err != nil {
+	if err := grabModel("en_US-hfc_male-medium.onnx"); err != nil {
 		t.Fatalf("error grabbing model: %v", err)
 	}
 
