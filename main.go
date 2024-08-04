@@ -47,7 +47,7 @@ func getConvertedRawText(inputPath string) (io.Reader, error) {
 	defer os.Remove(tmpFile.Name())
 
 	c := color.New(color.Bold, color.FgMagenta)
-	c.Println("Converting " + filepath.Base(inputPath) + " to the proper text format...")
+	c.Println("Converting " + filepath.Base(inputPath) + " to the proper intermediary text format...")
 
 	cmd := exec.Command("ebook-convert", inputPath, tmpFile.Name())
 
@@ -77,7 +77,7 @@ func installPiper() error {
 	var response string
 	fmt.Scanln(&response)
 
-	if strings.ToLower(response) != "yes" {
+	if strings.ToLower(response) != "yes" && strings.ToLower(response) != "y" {
 		return fmt.Errorf("piper installation aborted")
 	}
 
@@ -217,7 +217,7 @@ func runPiper(filename string, model string, text io.Reader) error {
 
 	c := color.New(color.Bold, color.FgMagenta, color.BlinkRapid)
 
-	c.Println("Converting "+filename+"to an audiobook...", "This may take a while!")
+	c.Println("Converting your file to an audiobook...", "This may take a while!")
 	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
 	s.Start()                                                   // Start the spinner
 
