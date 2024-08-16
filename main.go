@@ -9,10 +9,12 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
-	"github.com/alecthomas/kong"
-	"github.com/briandowns/spinner"
+	// import the local lib package from the current directory
+	lib "QuickPiperAudiobook/lib"
+
+	"github.com/charmbracelet/bubbles/spinner"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fatih/color"
 	"github.com/gen2brain/beeep"
 )
@@ -21,9 +23,9 @@ func getConvertedRawText(inputPath string) (io.Reader, error) {
 	// Ensure input file exists
 	if _, err := os.Stat(inputPath); os.IsNotExist(err) {
 		// If the file does not exist, check if it's a URL
-		if IsUrl(inputPath) {
+		if lib.IsUrl(inputPath) {
 			// Download the file
-			file, err := DownloadFile(inputPath, filepath.Base(inputPath))
+			file, err := lib.DownloadFile(inputPath, filepath.Base(inputPath))
 			if err != nil {
 				return nil, fmt.Errorf("failed to download file: %v", err)
 			}
@@ -100,7 +102,7 @@ func installPiper() error {
 	defer os.Remove(file.Name())
 
 	fmt.Println("Extracting piper...")
-	if err := Untar(resp.Body, "."); err != nil {
+	if err := lib.Untar(resp.Body, "."); err != nil {
 		return fmt.Errorf("failed to extract piper: %v", err)
 	}
 
@@ -108,13 +110,19 @@ func installPiper() error {
 	return nil
 }
 
-func checkEbookConvertInstalled() error {
+func checkEbookConvertInstalled() checkConvertInstalledResult {
 	_, err := exec.LookPath("ebook-convert")
 	if err != nil {
-		return fmt.Errorf("the ebook-convert command was not found in your PATH. Please install it with your package manager")
+		return checkConvertInstalledResult{
+			result: false,
+			err:    fmt.Errorf("the ebook-convert command was not found in your PATH. Please install it with your package manager"),
+		}
 	}
 
-	return nil
+	return checkConvertInstalledResult{
+		result: true,
+		err:    nil,
+	}
 
 }
 
@@ -127,11 +135,11 @@ func grabModel(modelName string) error {
 	modelJSONURL := modelURL + ".json"
 
 	// Download the model
-	if err := downloadIfNotExists(modelURL, modelName); err != nil {
+	if err := lib.DownloadIfNotExists(modelURL, modelName); err != nil {
 		return err
 	}
 
-	if err := downloadIfNotExists(modelJSONURL, modelName+".json"); err != nil {
+	if err := lib.DownloadIfNotExists(modelJSONURL, modelName+".json"); err != nil {
 		return err
 	}
 
@@ -218,16 +226,12 @@ func runPiper(filename string, model string, text io.Reader) error {
 	c := color.New(color.Bold, color.FgMagenta, color.BlinkRapid)
 
 	c.Println("Converting your file to an audiobook...", "This may take a while!")
-	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond) // Build our new spinner
-	s.Start()                                                   // Start the spinner
 
 	// Capture output
 	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("failed to run piper command: %v", err)
 	}
-	s.Stop()
-
 	color.New(color.Bold, color.FgGreen).Println("Done. Saved audiobook as " + abs)
 
 	beeep.Alert("Audiobook created", "Check the terminal for more info", "")
@@ -242,71 +246,14 @@ type CLI struct {
 }
 
 func main() {
-	// Parse command-line arguments
-	var cli CLI
-	ctx := kong.Parse(&cli)
 
-	// Set default output path if not provided
-	if cli.Output == "" {
-		cli.Output = "."
-	}
+	m := model{}
+	m.spinner = spinner.New()
+	m.spinner.Style = spinnerStyle
+	m.spinner.Spinner = spinner.Line
 
-	if cli.Model == "" {
-		defaultModel := "en_US-hfc_male-medium.onnx"
-		println("No model specified. Defaulting to " + defaultModel)
-		cli.Model = defaultModel
-	}
-
-	if (filepath.Ext(cli.Input)) != ".txt" {
-
-		if err := checkEbookConvertInstalled(); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			ctx.FatalIfErrorf(err)
-			return
-		}
-	}
-
-	// Check if piper is installed and prompt to install if not
-	if !checkPiperInstalled() {
-		if err := installPiper(); err != nil {
-			ctx.FatalIfErrorf(err)
-			return
-		}
-	}
-
-	models, err := findModels(".")
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		ctx.FatalIfErrorf(err)
-		return
-	}
-
-	if len(models) == 0 {
-		fmt.Println("No models found locally")
-	} else {
-		fmt.Println("Local models found: [ " + strings.TrimSpace(strings.Join(models, " , ")) + " ]")
-	}
-
-	err = grabModel(cli.Model)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		ctx.FatalIfErrorf(err)
-		return
-	}
-
-	data, err := getConvertedRawText(cli.Input)
-
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		ctx.FatalIfErrorf(err)
-	} else {
-		fmt.Println("Text conversion completed successfully.")
-	}
-
-	err = runPiper(cli.Input, cli.Model, data)
-
-	if err != nil {
-		color.Red("Error: %v", err)
-		return
+	if _, err := tea.NewProgram(m).Run(); err != nil {
+		fmt.Println("could not run program:", err)
+		os.Exit(1)
 	}
 }

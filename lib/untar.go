@@ -6,7 +6,7 @@
 
 // Forked by Colton to support symlinks
 
-package main
+package lib
 
 import (
 	"archive/tar"
