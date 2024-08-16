@@ -11,7 +11,6 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	// "github.com/fatih/color"
 )
 
 var (
@@ -20,111 +19,62 @@ var (
 	helpStyle    = list.DefaultStyles().HelpStyle.PaddingLeft(4).PaddingBottom(1)
 )
 
-type statusMsg int
-
-type checkConvertInstalledResult struct {
-	result bool
-	err    error
-}
-
-type errMsg struct{ err error }
-
-func (e errMsg) Error() string { return e.err.Error() }
-
-type checkPiperInstalledResult bool
-
-type findModelsResult []string
-
-type installPiperResult error
-
-type logMessage string
-
 type model struct {
 	spinner       spinner.Model
 	piperModels   []string
 	err           error
 	selectedModel string
+	config        CLI
 }
 
-func (m model) Start() tea.Msg {
-	var cli CLI
-	// ctx := kong.Parse(&cli)
+func grabModelCmd(m model) tea.Cmd {
+	return func() tea.Msg {
+		err := grabModel(m.config.Model)
+		if err != nil {
+			m.err = err
+		}
+		return nil
+	}
+}
 
-	// Set default output path if not provided
-	if cli.Output == "" {
-		cli.Output = "."
+func getConvertedRawTextCmd(m model) tea.Cmd {
+	return func() tea.Msg {
+		data, err := getConvertedRawText(m.config.Input)
+		if err != nil {
+			m.err = err
+		}
+		return data
 	}
-	if cli.Model == "" {
-		defaultModel := "en_US-hfc_male-medium.onnx"
-		cli.Model = defaultModel
-		return "No model specified. Defaulting to " + defaultModel
+}
+
+func runPiperCmd(m model) tea.Cmd {
+
+	return func() tea.Msg {
+		err := runPiper(m.config.Input, m.config.Model, nil)
+		if err != nil {
+			m.err = err
+		}
+		return nil
 	}
-	return "test"
 }
 
 func (m model) Init() tea.Cmd {
+	if m.err != nil {
+		return tea.Quit
+	}
 
-	return m.Start
-
-	// if (filepath.Ext(cli.Input)) != ".txt" {
-
-	// 	if err := checkEbookConvertInstalled(); err != nil {
-	// 		fmt.Printf("Error: %v\n", err)
-	// 		ctx.FatalIfErrorf(err)
-	// 		return nil
-	// 	}
-	// }
-
-	// Check if piper is installed and prompt to install if not
-	// if !checkPiperInstalled() {
-	// 	if err := installPiper(); err != nil {
-	// 		ctx.FatalIfErrorf(err)
-	// 		return nil
-	// 	}
-	// }
-
-	// models, err := findModels(".")
-	// if err != nil {
-	// 	fmt.Printf("Error: %v\n", err)
-	// 	ctx.FatalIfErrorf(err)
-	// 	return nil
-	// }
-
-	// if len(models) == 0 {
-	// 	fmt.Println("No models found locally")
-	// } else {
-	// 	fmt.Println("Local models found: [ " + strings.TrimSpace(strings.Join(models, " , ")) + " ]")
-	// }
-
-	// err = grabModel(cli.Model)
-	// if err != nil {
-	// 	fmt.Printf("Error: %v\n", err)
-	// 	ctx.FatalIfErrorf(err)
-	// 	return nil
-	// }
-
-	// data, err := getConvertedRawText(cli.Input)
-
-	// if err != nil {
-	// 	fmt.Printf("Error: %v\n", err)
-	// 	ctx.FatalIfErrorf(err)
-	// } else {
-	// 	fmt.Println("Text conversion completed successfully.")
-	// }
-
-	// err = runPiper(cli.Input, cli.Model, data)
-
-	// if err != nil {
-	// 	color.Red("Error: %v", err)
-	// 	return nil
-	// }
+	return tea.Sequence(grabModelCmd(m), getConvertedRawTextCmd(m), runPiperCmd(m))
 
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.err != nil {
+		return m, tea.Quit
+	}
 	switch msg := msg.(type) {
-	case string:
-		return m, nil
+	// case string:
+	// 	m.err = fmt.Errorf(msg)
+	// 	return m, m.spinner.Tick
 	case nil:
 		return m, tea.Quit
 	case tea.KeyMsg:
@@ -134,19 +84,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			return m, nil
 		}
-	case errMsg:
-		m.err = msg
-		return m, tea.Quit
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
-	case checkConvertInstalledResult:
-		if msg.err != nil {
-			m.err = msg.err
-			return m, tea.Quit
-		}
-		return m, nil
+	case tea.QuitMsg:
+		return m, tea.Quit
 	default:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
@@ -155,6 +98,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() (s string) {
-	s += fmt.Sprintf("\n %s %s\n\n", m.spinner.View(), textStyle("Spinning..."))
+
+	if m.err != nil {
+		return m.err.Error()
+	} else {
+		s += fmt.Sprintf("\n %s %s\n\n", m.spinner.View(), textStyle("Spinning..."))
+	}
+
 	return s
 }

@@ -13,6 +13,7 @@ import (
 	// import the local lib package from the current directory
 	lib "QuickPiperAudiobook/lib"
 
+	"github.com/alecthomas/kong"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fatih/color"
@@ -110,20 +111,13 @@ func installPiper() error {
 	return nil
 }
 
-func checkEbookConvertInstalled() checkConvertInstalledResult {
+func checkEbookConvertInstalled() error {
 	_, err := exec.LookPath("ebook-convert")
 	if err != nil {
-		return checkConvertInstalledResult{
-			result: false,
-			err:    fmt.Errorf("the ebook-convert command was not found in your PATH. Please install it with your package manager"),
-		}
+		fmt.Errorf("the ebook-convert command was not found in your PATH. Please install it with your package manager")
 	}
 
-	return checkConvertInstalledResult{
-		result: true,
-		err:    nil,
-	}
-
+	return nil
 }
 
 func grabModel(modelName string) error {
@@ -223,16 +217,14 @@ func runPiper(filename string, model string, text io.Reader) error {
 
 	slog.Debug("Running command: " + strings.Join(cmd.Args, " "))
 
-	c := color.New(color.Bold, color.FgMagenta, color.BlinkRapid)
-
-	c.Println("Converting your file to an audiobook...", "This may take a while!")
-
 	// Capture output
 	err = cmd.Run()
 	if err != nil {
 		return fmt.Errorf("failed to run piper command: %v", err)
 	}
-	color.New(color.Bold, color.FgGreen).Println("Done. Saved audiobook as " + abs)
+	if cmd.Stderr != nil {
+		return fmt.Errorf("failed to run piper command: %v", cmd.Stderr)
+	}
 
 	beeep.Alert("Audiobook created", "Check the terminal for more info", "")
 
@@ -247,7 +239,49 @@ type CLI struct {
 
 func main() {
 
+	var cli CLI
+	kong.Parse(&cli)
 	m := model{}
+
+	func() {
+		if cli.Output == "" {
+			cli.Output = "."
+		}
+		if cli.Model == "" {
+			defaultModel := "en_US-hfc_male-medium.onnx"
+			cli.Model = defaultModel
+			fmt.Printf("No model specified. Defaulting to %s\n", defaultModel)
+		}
+
+		if (filepath.Ext(cli.Input)) != ".txt" {
+
+			if err := checkEbookConvertInstalled(); err != nil {
+				m.err = err
+				return
+			}
+		}
+
+		// Check if piper is installed and prompt to install if not
+		if !checkPiperInstalled() {
+			if err := installPiper(); err != nil {
+				m.err = err
+				return
+			}
+		}
+
+		models, err := findModels(".")
+		if err != nil {
+			m.err = err
+			return
+		}
+
+		if len(models) == 0 {
+			fmt.Println("No models found locally")
+		} else {
+			fmt.Println("Local models found: [ " + strings.TrimSpace(strings.Join(models, " , ")) + " ]")
+		}
+	}()
+
 	m.spinner = spinner.New()
 	m.spinner.Style = spinnerStyle
 	m.spinner.Spinner = spinner.Line
