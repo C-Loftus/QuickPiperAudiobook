@@ -26,9 +26,6 @@ Create an audiobook for any text content with one command.
 ./QuickPiperAudiobook --help
 ```
 
-### Examples
-
-
 
 ## Configuring
 
