@@ -6,7 +6,7 @@
 
 // Forked by Colton to support symlinks
 
-package main
+package lib
 
 import (
 	"archive/tar"
@@ -24,11 +24,7 @@ import (
 )
 
 // Untar reads the gzip-compressed tar file from r and writes it into dir.
-func Untar(r io.Reader, dir string) error {
-	return untar(r, dir)
-}
-
-func untar(r io.Reader, dir string) (err error) {
+func Untar(r io.Reader, dir string) (err error) {
 	t0 := time.Now()
 	nFiles := 0
 	madeDir := map[string]bool{}

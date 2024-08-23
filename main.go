@@ -7,11 +7,15 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"QuickPiperAudiobook/lib"
+
 	"github.com/alecthomas/kong"
+	kongyaml "github.com/alecthomas/kong-yaml"
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 	"github.com/gen2brain/beeep"
@@ -21,12 +25,13 @@ func getConvertedRawText(inputPath string) (io.Reader, error) {
 	// Ensure input file exists
 	if _, err := os.Stat(inputPath); os.IsNotExist(err) {
 		// If the file does not exist, check if it's a URL
-		if IsUrl(inputPath) {
+		if lib.IsUrl(inputPath) {
 			// Download the file
-			file, err := DownloadFile(inputPath, filepath.Base(inputPath))
+			file, err := lib.DownloadFile(inputPath, filepath.Base(inputPath))
 			if err != nil {
 				return nil, fmt.Errorf("failed to download file: %v", err)
 			}
+			defer os.Remove(file.Name())
 
 			// Get the absolute path of the downloaded file
 			inputPath, err = filepath.Abs(file.Name())
@@ -100,7 +105,7 @@ func installPiper() error {
 	defer os.Remove(file.Name())
 
 	fmt.Println("Extracting piper...")
-	if err := Untar(resp.Body, "."); err != nil {
+	if err := lib.Untar(resp.Body, "."); err != nil {
 		return fmt.Errorf("failed to extract piper: %v", err)
 	}
 
@@ -120,18 +125,18 @@ func checkEbookConvertInstalled() error {
 
 func grabModel(modelName string) error {
 
-	modelURL, ok := modelToURL[modelName]
+	modelURL, ok := lib.ModelToURL[modelName]
 	if !ok {
 		return fmt.Errorf("model not found: %s", modelName)
 	}
 	modelJSONURL := modelURL + ".json"
 
 	// Download the model
-	if err := downloadIfNotExists(modelURL, modelName); err != nil {
+	if err := lib.DownloadIfNotExists(modelURL, modelName); err != nil {
 		return err
 	}
 
-	if err := downloadIfNotExists(modelJSONURL, modelName+".json"); err != nil {
+	if err := lib.DownloadIfNotExists(modelJSONURL, modelName+".json"); err != nil {
 		return err
 	}
 
@@ -176,7 +181,7 @@ func findModels(dir string) ([]string, error) {
 	return result, nil
 }
 
-func runPiper(filename string, model string, text io.Reader) error {
+func runPiper(filename string, model string, text io.Reader, outdir string) error {
 
 	// Get the current working directory
 	currentDir, err := os.Getwd()
@@ -192,8 +197,7 @@ func runPiper(filename string, model string, text io.Reader) error {
 
 	slog.Debug("piper executable path: " + piperExecutable)
 
-	// Output name is equal to the filename with .wav instead of the extension
-	outputName := strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename)) + ".wav"
+	outputName := filepath.Join(outdir, strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))) + ".wav"
 
 	abs, err := filepath.Abs(outputName)
 	if err != nil {
@@ -243,12 +247,62 @@ type CLI struct {
 
 func main() {
 	// Parse command-line arguments
+	var config CLI
+
+	// Get the current user
+	usr, _ := user.Current()
+
+	// Construct the config path in the user's home directory
+	configDir := filepath.Join(usr.HomeDir, ".config", "QuickPiperAudiobook")
+	configPath := filepath.Join(configDir, "config.yaml")
+
+	// Check if the directory exists; if not, create it
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		if err := os.MkdirAll(configDir, 0755); err != nil {
+			fmt.Println("Error creating directory:", err)
+			return
+		}
+
+		// create config.yaml
+		if _, err := os.Create(configPath); err != nil {
+			fmt.Println("Error creating file:", err)
+			return
+		}
+		fmt.Println("New blank configuration file created at", configPath)
+	} else if err != nil {
+		fmt.Println("Error checking file:", err)
+		return
+	}
+
+	parser, err := kong.New(&config, kong.Configuration(kongyaml.Loader, configPath))
+
+	for _, name := range []string{"output", "model"} {
+		_, err := parser.Parse([]string{name})
+
+		if err != nil {
+			fmt.Println("Error parsing the value for", name, "in your config file at:", configPath)
+			return
+		}
+	}
+
 	var cli CLI
-	ctx := kong.Parse(&cli)
+	ctx := kong.Parse(&cli, kong.Description("Covert a text file to an audiobook using a managed piper install"),)
+
+	if cli.Output == "" && config.Output != "" {
+		fmt.Println("No output value specified, default from config file: " + config.Output)
+		cli.Output = config.Output
+	}
+	if cli.Model == "" && config.Model != "" {
+		fmt.Println("Using model specified in config file: " + config.Model)
+		cli.Model = config.Model
+	}
 
 	// Set default output path if not provided
 	if cli.Output == "" {
 		cli.Output = "."
+	}
+	if strings.HasPrefix(cli.Output, "~/") {
+		cli.Output = filepath.Join(usr.HomeDir, cli.Output[2:])
 	}
 
 	if cli.Model == "" {
@@ -303,7 +357,7 @@ func main() {
 		fmt.Println("Text conversion completed successfully.")
 	}
 
-	err = runPiper(cli.Input, cli.Model, data)
+	err = runPiper(cli.Input, cli.Model, data, cli.Output)
 
 	if err != nil {
 		color.Red("Error: %v", err)

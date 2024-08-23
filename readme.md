@@ -2,11 +2,10 @@
 
 Create an audiobook for any text content with one command. 
  - Uses any [piper](https://rhasspy.github.io/piper-samples/) model
- - Manages your piper install and associated models
- - Can convert [PDFs, epub, txt, mobi, djvu, HTML, docx, and more](https://manual.calibre-ebook.com/generated/en/ebook-convert.html)
- - Can fetch content from remote URLs
- - All processing on your text file is done offline and is entirely private
-
+    - Manages your piper install and associated models
+ - Converts [PDFs, epub, txt, mobi, djvu, HTML, docx, and more](https://manual.calibre-ebook.com/generated/en/ebook-convert.html)
+    - Can fetch and convert any of the above from remote URLs
+ - All conversion is done offline and is entirely private
 
 
 ## Installing
@@ -21,10 +20,23 @@ Create an audiobook for any text content with one command.
 
 
 
-## Running 
+## Help 
 
 ```
 ./QuickPiperAudiobook --help
+```
+
+### Examples
+
+
+
+## Configuring
+
+A configuration file at `~/.config/QuickPiperAudiobook/config.yml` will be automatically created. You can place a default model and output path so you do not need to specify these args each time.
+
+```yml
+output: ~/Audiobooks
+model: "en_US-hfc_female-medium.onnx"
 ```
 
 ## Limitations

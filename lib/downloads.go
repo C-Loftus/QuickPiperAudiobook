@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ func IsUrl(str string) bool {
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
-func downloadIfNotExists(fileURL, fileName string) error {
+func DownloadIfNotExists(fileURL, fileName string) error {
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
 		if _, err := DownloadFile(fileURL, fileName); err != nil {
 			return err
