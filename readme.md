@@ -20,14 +20,23 @@ Create an audiobook for any text content with one command.
 
 
 
-## Help 
+## Usage 
 
-```
-./QuickPiperAudiobook --help
-```
+* Pass in either a local file or a remote URL to generate an audiobook: 
+   * i.e. `./QuickPiperAudiobook test.txt`
+* For a full list of options use the `--help` flag
+   * i.e. `./QuickPiperAudiobook --help`
+
+### Models and Examples
 
 
-## Configuring
+* An example of the default output can be found in [the examples folder](./examples/)
+   * Other pretrained models can be listened to at https://rhasspy.github.io/piper-samples/ 
+* This program downloads and manages some of the [best quality models](./lib/models.go) for you
+   * However, you can use this repo with any Piper model as you have both the `.onnx` and `.onnx.json` file for it. 
+
+
+### Configuring
 
 A configuration file at `~/.config/QuickPiperAudiobook/config.yml` will be automatically created. You can place a default model and output path so you do not need to specify these args each time.
 

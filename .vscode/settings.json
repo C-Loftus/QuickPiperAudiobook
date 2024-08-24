@@ -1,0 +1,5 @@
+{
+    "editor.formatOnType": true,
+    // hide git ignored files
+    "explorer.excludeGitIgnore": false
+}

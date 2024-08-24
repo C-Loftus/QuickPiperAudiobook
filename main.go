@@ -241,7 +241,7 @@ func runPiper(filename string, model string, text io.Reader, outdir string) erro
 
 type CLI struct {
 	Input  string `arg:"" help:"Local path or URL to the input file"`
-	Output string `help:"Path to save the converted ebook file (optional)."`
+	Output string `help:"Directory in which to save the converted ebook file (optional)."`
 	Model  string `help:"Model to use. (optional)"`
 }
 
@@ -286,7 +286,7 @@ func main() {
 	}
 
 	var cli CLI
-	ctx := kong.Parse(&cli, kong.Description("Covert a text file to an audiobook using a managed piper install"),)
+	ctx := kong.Parse(&cli, kong.Description("Covert a text file to an audiobook using a managed piper install"))
 
 	if cli.Output == "" && config.Output != "" {
 		fmt.Println("No output value specified, default from config file: " + config.Output)
