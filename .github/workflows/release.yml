@@ -1,14 +1,67 @@
-on: 
+on:
   push:
-    branches:
-      - master
+    # Sequence of patterns matched against refs/tags
+    # tags:
+      # - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Latest Release
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  release-on-push:
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # test:
+    # name: Run tests
+    # runs-on: 'ubuntu-latest'
+    # needs: lint
+    # steps:
+      # - uses: actions/checkout@v2
+      # - uses: actions/setup-go@v2
+        # with:
+          # go-version: '1.22.x'
+      # - run: go test -v -cover
+  release:
+    name: Create Release
+    runs-on: 'ubuntu-latest'
+    # needs: test
+    strategy:
+      matrix:
+        # List of GOOS and GOARCH pairs from `go tool dist list`
+        goosarch:
+          - "linux/amd64"
+          # etc
     steps:
-      - uses: rymndhng/release-on-push-action@master
+      - name: Checkout code
+        uses: actions/checkout@v2
         with:
-          bump_version_scheme: minor
+          fetch-depth: 0
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.22.x'
+      - name: Get OS and arch info
+        run: |
+          GOOSARCH=${{matrix.goosarch}}
+          GOOS=${GOOSARCH%/*}
+          GOARCH=${GOOSARCH#*/}
+          BINARY_NAME=${{github.repository}}-$GOOS-$GOARCH
+          echo "BINARY_NAME=$BINARY_NAME" >> $GITHUB_ENV
+          echo "GOOS=$GOOS" >> $GITHUB_ENV
+          echo "GOARCH=$GOARCH" >> $GITHUB_ENV
+      - name: Build
+        run: |
+          go build -o "$BINARY_NAME" -v
+      - name: Release Notes
+        run:
+          git log $(git describe HEAD~ --tags --abbrev=0)..HEAD --pretty='format:* %h %s%n  * %an <%ae>' --no-merges >> ".github/RELEASE-TEMPLATE.md"
+      - name: Release with Notes
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: ".github/RELEASE-TEMPLATE.md"
+          draft: false
+          files: ${{env.BINARY_NAME}}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
