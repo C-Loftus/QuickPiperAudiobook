@@ -22,14 +22,14 @@ func DownloadIfNotExists(fileURL, fileName string) error {
 	return nil
 }
 
-func DownloadFile(url string, filename string) (*os.File, error) {
+func DownloadFile(url string, outputName string) (*os.File, error) {
 
-	println("Downloading " + filename)
+	println("Downloading " + outputName)
 
 	// Create the file to save the model
-	file, err := os.Create(filename)
+	file, err := os.Create(outputName)
 	if err != nil {
-		return nil, fmt.Errorf("error creating file %s: %v", filename, err)
+		return nil, fmt.Errorf("error creating file %s: %v", outputName, err)
 	}
 	defer file.Close()
 
@@ -48,7 +48,7 @@ func DownloadFile(url string, filename string) (*os.File, error) {
 	// Copy the response body to the file
 	_, err = io.Copy(file, resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error saving file %s: %v", filename, err)
+		return nil, fmt.Errorf("error saving file %s: %v", outputName, err)
 	}
 
 	fmt.Println("Finished downloading successfully.")

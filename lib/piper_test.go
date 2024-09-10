@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"testing"
@@ -6,11 +6,11 @@ import (
 
 func TestModels(t *testing.T) {
 
-	if err := grabModel("en_US-hfc_male-medium.onnx"); err != nil {
+	if err := GrabModel("en_US-hfc_male-medium.onnx"); err != nil {
 		t.Fatalf("error grabbing model: %v", err)
 	}
 
-	models, err := findModels(".")
+	models, err := FindModels(".")
 	if err != nil {
 		t.Fatalf("error finding models: %v", err)
 	}
@@ -21,7 +21,7 @@ func TestModels(t *testing.T) {
 }
 
 func TestPiperInstalled(t *testing.T) {
-	if !checkPiperInstalled() {
+	if !CheckPiperInstalled() {
 		t.Fatalf("piper is not installed")
 	}
 }
