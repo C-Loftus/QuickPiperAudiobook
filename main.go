@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
@@ -15,54 +14,58 @@ import (
 )
 
 type CLI struct {
-	Input            string `arg:"" help:"Local path or URL to the input file"`
-	Output           string `help:"Directory in which to save the converted ebook file (optional)."`
-	Model            string `help:"Model to use. (optional)"`
-	RemoveDiacritics bool   `help:"Remove diacritics from the input file. (optional)"`
+	Input           string `arg:"" help:"Local path or URL to the input file"`
+	Output          string `help:"Directory in which to save the converted ebook file"`
+	Model           string `help:"Local path to the onnx model for piper to use"`
+	SpeakDiacritics bool   `help:"Speak diacritics from the input file"`
+	ListModels      bool   `help:"List available models"`
 }
 
 func main() {
-	// Parse command-line arguments
+
 	var config CLI
 
-	// Get the current user
 	usr, _ := user.Current()
 
-	// Construct the config path in the user's home directory
 	configDir := filepath.Join(usr.HomeDir, ".config", "QuickPiperAudiobook")
-	configPath := filepath.Join(configDir, "config.yaml")
+	configFile := filepath.Join(configDir, "config.yaml")
+	defaultModel := "en_US-hfc_male-medium.onnx"
+	modelDirectory, _ := filepath.Abs(filepath.Join(usr.HomeDir, ".config", "QuickPiperAudiobook"))
 
-	// Check if the directory exists; if not, create it
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		if err := os.MkdirAll(configDir, 0755); err != nil {
-			fmt.Println("Error creating directory:", err)
-			return
-		}
-
-		// create config.yaml
-		if _, err := os.Create(configPath); err != nil {
-			fmt.Println("Error creating file:", err)
-			return
-		}
-		fmt.Println("New blank configuration file created at", configPath)
-	} else if err != nil {
-		fmt.Println("Error checking file:", err)
+	if err := lib.CreateConfigIfNotExists(configFile, configDir, defaultModel); err != nil {
+		fmt.Printf("Error: %v\n", err)
 		return
 	}
 
-	parser, _ := kong.New(&config, kong.Configuration(kongyaml.Loader, configPath))
+	parser, _ := kong.New(&config, kong.Configuration(kongyaml.Loader, configFile))
 
 	for _, name := range []string{"output", "model"} {
 		_, err := parser.Parse([]string{name})
 
 		if err != nil {
-			fmt.Println("Error parsing the value for", name, "in your config file at:", configPath)
+			fmt.Println("Error parsing the value for", name, "in your config file at:", configFile)
 			return
 		}
 	}
 
 	var cli CLI
 	ctx := kong.Parse(&cli, kong.Description("Covert a text file to an audiobook using a managed piper install"))
+
+	if cli.ListModels {
+		models, err := lib.FindModels(modelDirectory)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			ctx.FatalIfErrorf(err)
+			return
+		}
+
+		if len(models) == 0 {
+			fmt.Println("No models found in " + modelDirectory)
+		} else {
+			fmt.Println("Found models:\n" + strings.TrimSpace(strings.Join(models, "\n")))
+		}
+		return
+	}
 
 	if cli.Output == "" && config.Output != "" {
 		fmt.Println("No output value specified, default from config file: " + config.Output)
@@ -82,13 +85,12 @@ func main() {
 	}
 
 	if cli.Model == "" {
-		defaultModel := "en_US-hfc_male-medium.onnx"
 		println("No model specified. Defaulting to " + defaultModel)
 		cli.Model = defaultModel
 	}
 
 	if (filepath.Ext(cli.Input)) != ".txt" {
-
+		// if it is not .txt file, then we need to convert it to .txt and thus need ebook-convert
 		if err := lib.CheckEbookConvertInstalled(); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			ctx.FatalIfErrorf(err)
@@ -96,32 +98,24 @@ func main() {
 		}
 	}
 
-	// Check if piper is installed and prompt to install if not
-	if !lib.CheckPiperInstalled() {
-		if err := lib.InstallPiper(); err != nil {
+	if !lib.PiperIsInstalled(modelDirectory) {
+		if err := lib.InstallPiper(modelDirectory); err != nil {
 			ctx.FatalIfErrorf(err)
 			return
 		}
 	}
 
-	models, err := lib.FindModels(".")
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		ctx.FatalIfErrorf(err)
-		return
-	}
+	modelPath, err := lib.ExpandModelPath(cli.Model, modelDirectory)
 
-	if len(models) == 0 {
-		fmt.Println("No models found locally")
-	} else {
-		fmt.Println("Local models found: [ " + strings.TrimSpace(strings.Join(models, " , ")) + " ]")
-	}
-
-	err = lib.GrabModel(cli.Model)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		ctx.FatalIfErrorf(err)
-		return
+		// if the path can't be expanded, it doesn't exist and we need to download it
+		err := lib.DownloadModelIfNotExists(cli.Model, modelDirectory)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			ctx.FatalIfErrorf(err)
+			return
+		}
+
 	}
 
 	data, err := lib.GetConvertedRawText(cli.Input)
@@ -133,18 +127,16 @@ func main() {
 		fmt.Println("Text conversion completed successfully.")
 	}
 
-	plainText, err := lib.RemoveDiacritics(data)
+	if !cli.SpeakDiacritics {
+		if data, err = lib.RemoveDiacritics(data); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			ctx.FatalIfErrorf(err)
+			return
+		}
 
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		ctx.FatalIfErrorf(err)
-		return
 	}
 
-	err = lib.RunPiper(cli.Input, cli.Model, plainText, cli.Output)
-
-	if err != nil {
+	if err := lib.RunPiper(cli.Input, modelPath, data, cli.Output); err != nil {
 		color.Red("Error: %v", err)
-		return
 	}
 }

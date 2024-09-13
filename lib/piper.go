@@ -2,10 +2,12 @@ package lib
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -15,22 +17,39 @@ import (
 	"github.com/gen2brain/beeep"
 )
 
-func RunPiper(filename string, model string, file *os.File, outdir string) error {
+func RunPiper(filename string, // we need to have the filename here since the file passed in is a tmp file and a dummy name
+	model string, file *os.File, outdir string) error {
 
-	// Get the current working directory
-	currentDir, err := os.Getwd()
+	// Debugging: Read file content to check if it's empty
+	fileContent, err := io.ReadAll(file)
 	if err != nil {
-		return fmt.Errorf("failed to get current working directory: %v", err)
+		return fmt.Errorf("failed to read file: %v", err)
 	}
 
-	// Define the path to the 'piper' directory
-	piperDir := filepath.Join(currentDir, "piper")
+	// Print file content for debugging purposes
+	if len(fileContent) == 0 {
+		slog.Debug("File is empty.")
+	} else {
+		slog.Debug("File content: " + string(fileContent))
+	}
+
+	// Reset the file read pointer to the start
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		return fmt.Errorf("failed to reset file pointer: %v", err)
+	}
+
+	// Get the current working directory
+	usr, _ := user.Current()
+
+	piperDir, _ := filepath.Abs(filepath.Join(usr.HomeDir, ".config", "QuickPiperAudiobook", "piper"))
 
 	// Define the path to the 'piper' executable within the 'piper' directory
 	piperExecutable := filepath.Join(piperDir, "piper")
 
 	slog.Debug("piper executable path: " + piperExecutable)
 
+	outdir, _ = filepath.Abs(outdir)
 	outputName := filepath.Join(outdir, strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))) + ".wav"
 
 	abs, err := filepath.Abs(outputName)
@@ -47,7 +66,6 @@ func RunPiper(filename string, model string, file *os.File, outdir string) error
 	cmd := exec.Command(piperExecutable, "--model", modelAbs, "--output_file", abs)
 	cmd.Dir = piperDir
 	cmd.Stdin = file
-
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -74,6 +92,15 @@ func RunPiper(filename string, model string, file *os.File, outdir string) error
 }
 
 func FindModels(dir string) ([]string, error) {
+
+	if strings.HasPrefix(dir, "~/") {
+		usr, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("error getting user home directory: %v", err)
+		}
+		dir = filepath.Join(usr, dir[2:])
+	}
+
 	// Read the directory
 	files, err := os.ReadDir(dir)
 	if err != nil {
@@ -111,29 +138,17 @@ func FindModels(dir string) ([]string, error) {
 	return result, nil
 }
 
-func CheckPiperInstalled() bool {
-	cmd := exec.Command("which", "piper")
-	err := cmd.Run()
-	if err != nil {
-		if _, err := os.Stat("piper"); os.IsNotExist(err) {
-			return false
-		}
-	}
+func PiperIsInstalled(installationPath string) bool {
 
+	if _, err := os.Stat(installationPath); os.IsNotExist(err) {
+		return false
+	}
 	return true
 }
 
-func InstallPiper() error {
-	fmt.Println("Piper is not in your PATH. Do you want to download it for local use with this script? (yes/no)")
+func InstallPiper(installationDir string) error {
+	fmt.Println("Installing piper...")
 
-	var response string
-	fmt.Scanln(&response)
-
-	if strings.ToLower(response) != "yes" && strings.ToLower(response) != "y" {
-		return fmt.Errorf("piper installation aborted")
-	}
-
-	fmt.Println("Downloading piper...")
 	resp, err := http.Get("https://github.com/rhasspy/piper/releases/download/v1.2.0/piper_amd64.tar.gz")
 	if err != nil {
 		return fmt.Errorf("failed to download piper: %v", err)
@@ -152,7 +167,7 @@ func InstallPiper() error {
 	defer os.Remove(file.Name())
 
 	fmt.Println("Extracting piper...")
-	if err := Untar(resp.Body, "."); err != nil {
+	if err := Untar(resp.Body, installationDir); err != nil {
 		return fmt.Errorf("failed to extract piper: %v", err)
 	}
 

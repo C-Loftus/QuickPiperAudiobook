@@ -20,7 +20,6 @@ func RemoveDiacritics(file *os.File) (*os.File, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary file: %v", err)
 	}
-	defer tmpFile.Close() // Ensure that tmpFile is closed after function execution
 
 	pr, pw := io.Pipe()
 
@@ -58,7 +57,7 @@ func CheckEbookConvertInstalled() error {
 
 }
 
-func GrabModel(modelName string) error {
+func DownloadModelIfNotExists(modelName string, outputDir string) error {
 
 	modelURL, ok := ModelToURL[modelName]
 	if !ok {
@@ -67,11 +66,12 @@ func GrabModel(modelName string) error {
 	modelJSONURL := modelURL + ".json"
 
 	// Download the model
-	if err := DownloadIfNotExists(modelURL, modelName); err != nil {
+	if err := DownloadIfNotExists(modelURL, modelName, outputDir); err != nil {
 		return err
 	}
 
-	if err := DownloadIfNotExists(modelJSONURL, modelName+".json"); err != nil {
+	// Download the model JSON
+	if err := DownloadIfNotExists(modelJSONURL, modelName+".json", outputDir); err != nil {
 		return err
 	}
 
@@ -84,7 +84,7 @@ func GetConvertedRawText(inputPath string) (*os.File, error) {
 		// If the file does not exist, check if it's a URL
 		if IsUrl(inputPath) {
 			// Download the file
-			file, err := DownloadFile(inputPath, filepath.Base(inputPath))
+			file, err := DownloadFile(inputPath, filepath.Base(inputPath), ".")
 			if err != nil {
 				return nil, fmt.Errorf("failed to download file: %v", err)
 			}

@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${fileDirname}",
-            "args": ["https://example-files.online-convert.com/document/txt/example.txt"]
+            "args": ["https://example-files.online-convert.com/document/txt/example.txt"],
         }
     ]
 }
