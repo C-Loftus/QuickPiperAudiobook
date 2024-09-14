@@ -70,27 +70,26 @@ func main() {
 	if cli.Output == "" && config.Output != "" {
 		fmt.Println("No output value specified, default from config file: " + config.Output)
 		cli.Output = config.Output
+		// if output is not set and config is not set, default to current directory
+	} else if cli.Output == "" && config.Output == "" {
+		cli.Output = "."
 	}
+
 	if cli.Model == "" && config.Model != "" {
 		fmt.Println("Using model specified in config file: " + config.Model)
 		cli.Model = config.Model
-	}
-
-	// Set default output path if not provided
-	if cli.Output == "" {
-		cli.Output = "."
-	}
-	if strings.HasPrefix(cli.Output, "~/") {
-		cli.Output = filepath.Join(usr.HomeDir, cli.Output[2:])
-	}
-
-	if cli.Model == "" {
+	} else if cli.Model == "" && config.Model == "" {
 		println("No model specified. Defaulting to " + defaultModel)
 		cli.Model = defaultModel
 	}
 
+	if strings.HasPrefix(cli.Output, "~/") {
+		// if it starts with ~, then we need to expand it
+		cli.Output = filepath.Join(usr.HomeDir, cli.Output[2:])
+	}
+
 	if (filepath.Ext(cli.Input)) != ".txt" {
-		// if it is not .txt file, then we need to convert it to .txt and thus need ebook-convert
+		// if it is not already a .txt file, then we need to convert it to .txt and thus need ebook-convert
 		if err := lib.CheckEbookConvertInstalled(); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			ctx.FatalIfErrorf(err)

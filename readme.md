@@ -1,12 +1,12 @@
 # QuickPiperAudiobook
 
-Create an audiobook for any text content with one command. 
- - Uses any [piper](https://rhasspy.github.io/piper-samples/) model
-    - Manages your piper install and associated models
- - Converts [PDFs, epub, txt, mobi, djvu, HTML, docx, and more](https://manual.calibre-ebook.com/generated/en/ebook-convert.html)
-    - Can fetch and convert any of the above from remote URLs
- - All conversion is done offline and is entirely private
+Create a natural audiobook for any text content with one command. 
 
+ - Converts [PDFs, epub, txt, mobi, djvu, HTML, docx, and more](https://manual.calibre-ebook.com/generated/en/ebook-convert.html)
+ - All conversion is done offline and is entirely private
+ - Uses [piper models](https://rhasspy.github.io/piper-samples/); supports many languages
+
+Listen to sample output [ here ](./examples/)
 
 ## Installing
 
@@ -27,24 +27,22 @@ Create an audiobook for any text content with one command.
 * For a full list of options use the `--help` flag
    * i.e. `./QuickPiperAudiobook --help`
 
-### Models and Examples
-
-
-* An example of the default output can be found in [the examples folder](./examples/)
-   * Other pretrained models can be listened to at https://rhasspy.github.io/piper-samples/ 
-* This program downloads and manages some of the [best quality models](./lib/models.go) for you
-   * However, you can use this repo with any Piper model as you have both the `.onnx` and `.onnx.json` file for it. 
-
 
 ### Configuring
 
-A configuration file at `~/.config/QuickPiperAudiobook/config.yml` will be automatically created. You can place a default model and output path so you do not need to specify these args each time.
+* A configuration file at `~/.config/QuickPiperAudiobook/config.yml` will be automatically created. 
+* You can specify a default model and output path so you do not need to specify these args each time.
+* You can use any arbitrary model by putting the associated `.onnx` and `.onnx.json` file for it in `~/.config/QuickPiperAudiobook/`
+
 
 ```yml
+# An example `~/.config/QuickPiperAudiobook/config.yml`
 output: ~/Audiobooks
 model: "en_US-hfc_female-medium.onnx"
 ```
 
-## Limitations
+## Notes
 
-To my knowledge, piper does not support progress output. Long books (600+ pages) may take a long time (30 min or more) to generate as audio since all computation is being done locally. 
+Piper does not support progress output. Long audiobooks may take a long time to generate since all computation is being done locally. 
+
+This repo has only been tested on Linux.
