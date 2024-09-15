@@ -39,6 +39,15 @@ func TestPiperInstalled(t *testing.T) {
 }
 
 func TestOutput(t *testing.T) {
+	homeDir, _ := os.UserHomeDir()
+	path := filepath.Join(homeDir, ".config/QuickPiperAudiobook")
+
+	if !PiperIsInstalled(path) {
+		if err := InstallPiper(path); err != nil {
+			t.Fatalf("error installing piper: %v", err)
+		}
+	}
+
 	model := "en_US-hfc_male-medium.onnx"
 	if err := DownloadModelIfNotExists(model, "."); err != nil {
 		t.Fatalf("error grabbing model: %v", err)

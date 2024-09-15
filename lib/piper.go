@@ -23,7 +23,7 @@ func RunPiper(filename string, // we need to have the filename here since the fi
 	// Debugging: Read file content to check if it's empty
 	fileContent, err := io.ReadAll(file)
 	if err != nil {
-		return fmt.Errorf("failed to read file: %v", err)
+		return fmt.Errorf("failed to read file passed as input to piper: %v", err)
 	}
 
 	// Print file content for debugging purposes

@@ -16,6 +16,7 @@ func IsUrl(str string) bool {
 
 func DownloadIfNotExists(fileURL, fileName string, outputDir string) error {
 
+	// add the "/" to the end so it the outputdir is a valid path
 	if !strings.HasSuffix(outputDir, "/") {
 		outputDir += "/"
 	}
