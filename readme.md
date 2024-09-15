@@ -36,8 +36,11 @@ Listen to sample output [ here ](./examples/)
 
 
 ```yml
-# An example `~/.config/QuickPiperAudiobook/config.yml`
+# An example for `~/.config/QuickPiperAudiobook/config.yml`
+
+# the default output directory to use if the user does not specify --output in the cli args
 output: ~/Audiobooks
+# the default model to use if the user does not specify --model in the cli args
 model: "en_US-hfc_female-medium.onnx"
 ```
 
