@@ -1,12 +1,12 @@
 package cli
 
 import (
+	"QuickPiperAudiobook/lib"
 	"fmt"
-	"os/user"
+	"log/slog"
+	"os"
 	"path/filepath"
 	"strings"
-
-	"QuickPiperAudiobook/lib"
 
 	"github.com/alecthomas/kong"
 	kongyaml "github.com/alecthomas/kong-yaml"
@@ -22,8 +22,8 @@ type CLI struct {
 }
 
 // package level variables we want to expose for testing
-var usr, _ = user.Current()
-var configDir = filepath.Join(usr.HomeDir, ".config", "QuickPiperAudiobook")
+var homedir, homedir_err = os.UserHomeDir()
+var configDir = filepath.Join(homedir, ".config", "QuickPiperAudiobook")
 var configFile = filepath.Join(configDir, "config.yaml")
 
 const defaultModel = "en_US-hfc_male-medium.onnx"
@@ -31,9 +31,12 @@ const defaultModel = "en_US-hfc_male-medium.onnx"
 // All cli code is outside of the main package for testing purposes
 func RunCLI() {
 
-	var config CLI
+	if homedir_err != nil {
+		fmt.Printf("Error getting user home directory: %v\n", homedir_err)
+		return
+	}
 
-	modelDirectory, _ := filepath.Abs(filepath.Join(usr.HomeDir, ".config", "QuickPiperAudiobook"))
+	var config CLI
 
 	if err := lib.CreateConfigIfNotExists(configFile, configDir, defaultModel); err != nil {
 		fmt.Printf("Error: %v\n", err)
@@ -55,7 +58,7 @@ func RunCLI() {
 	ctx := kong.Parse(&cli, kong.Description("Covert a text file to an audiobook using a managed piper install"))
 
 	if cli.ListModels {
-		models, err := lib.FindModels(modelDirectory)
+		models, err := lib.FindModels(configDir)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			ctx.FatalIfErrorf(err)
@@ -63,7 +66,7 @@ func RunCLI() {
 		}
 
 		if len(models) == 0 {
-			fmt.Println("No models found in " + modelDirectory)
+			fmt.Println("No models found in " + configDir)
 		} else {
 			fmt.Println("Found models:\n" + strings.TrimSpace(strings.Join(models, "\n")))
 		}
@@ -88,7 +91,17 @@ func RunCLI() {
 
 	if strings.HasPrefix(cli.Output, "~/") {
 		// if it starts with ~, then we need to expand it
-		cli.Output = filepath.Join(usr.HomeDir, cli.Output[2:])
+		cli.Output = filepath.Join(homedir, cli.Output[2:])
+	}
+
+	// if cli.Output does not exist as a directory make it
+	if _, err := os.Stat(cli.Output); os.IsNotExist(err) {
+		err := os.MkdirAll(cli.Output, os.ModePerm)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			ctx.FatalIfErrorf(err)
+			return
+		}
 	}
 
 	if (filepath.Ext(cli.Input)) != ".txt" {
@@ -100,24 +113,26 @@ func RunCLI() {
 		}
 	}
 
-	if !lib.PiperIsInstalled(modelDirectory) {
-		if err := lib.InstallPiper(modelDirectory); err != nil {
+	if !lib.PiperIsInstalled(configDir) {
+		if err := lib.InstallPiper(configDir); err != nil {
 			ctx.FatalIfErrorf(err)
 			return
 		}
+	} else {
+		slog.Debug("Piper install detected in " + configDir)
 	}
 
-	modelPath, err := lib.ExpandModelPath(cli.Model, modelDirectory)
+	modelPath, err := lib.ExpandModelPath(cli.Model, configDir)
 
 	if err != nil {
 		// if the path can't be expanded, it doesn't exist and we need to download it
-		err := lib.DownloadModelIfNotExists(cli.Model, modelDirectory)
+		err := lib.DownloadModelIfNotExists(cli.Model, configDir)
 		if err != nil {
 			fmt.Printf("Error: %v\n", err)
 			ctx.FatalIfErrorf(err)
 			return
 		}
-		modelPath, err = lib.ExpandModelPath(cli.Model, modelDirectory)
+		modelPath, err = lib.ExpandModelPath(cli.Model, configDir)
 
 		if err != nil {
 			fmt.Printf("Error could not find the model path after downloading it: %v\n", err)
