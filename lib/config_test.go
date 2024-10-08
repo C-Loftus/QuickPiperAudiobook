@@ -2,14 +2,18 @@ package lib
 
 import (
 	"os"
-	"os/user"
 	"path/filepath"
 	"testing"
 )
 
 func TestCreateConfigIfNotExists(t *testing.T) {
-	usr, _ := user.Current()
-	configDir := filepath.Join(usr.HomeDir, ".config", "QuickPiperAudiobook")
+	homedir, err := os.UserHomeDir()
+
+	if err != nil {
+		t.Fatalf("error getting user home directory: %v", err)
+	}
+
+	configDir := filepath.Join(homedir, ".config", "QuickPiperAudiobook")
 	configFile := filepath.Join(configDir, "config.yaml")
 	defaultModel := "en_US-hfc_male-medium.onnx"
 

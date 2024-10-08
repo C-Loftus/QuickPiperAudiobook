@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -39,10 +38,13 @@ func RunPiper(filename string, // we need to have the filename here since the fi
 		return fmt.Errorf("failed to reset file pointer: %v", err)
 	}
 
-	// Get the current working directory
-	usr, _ := user.Current()
+	homedir, homedir_err := os.UserHomeDir()
 
-	piperDir, _ := filepath.Abs(filepath.Join(usr.HomeDir, ".config", "QuickPiperAudiobook", "piper"))
+	if homedir_err != nil {
+		return fmt.Errorf("failed to get user home directory: %v", homedir_err)
+	}
+
+	piperDir, _ := filepath.Abs(filepath.Join(homedir, ".config", "QuickPiperAudiobook", "piper"))
 
 	// Define the path to the 'piper' executable within the 'piper' directory
 	piperExecutable := filepath.Join(piperDir, "piper")
@@ -50,6 +52,13 @@ func RunPiper(filename string, // we need to have the filename here since the fi
 	slog.Debug("piper executable path: " + piperExecutable)
 
 	outdir, _ = filepath.Abs(outdir)
+
+	// make sure the output directory exists
+	err = os.MkdirAll(outdir, 0755)
+	if err != nil {
+		return fmt.Errorf("output directory specified for piper does not exist: %v", err)
+	}
+
 	outputName := filepath.Join(outdir, strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))) + ".wav"
 
 	abs, err := filepath.Abs(outputName)
@@ -140,7 +149,9 @@ func FindModels(dir string) ([]string, error) {
 
 func PiperIsInstalled(installationPath string) bool {
 
-	if _, err := os.Stat(installationPath); os.IsNotExist(err) {
+	piperpath := filepath.Join(installationPath, "piper")
+
+	if _, err := os.Stat(piperpath); os.IsNotExist(err) {
 		return false
 	}
 	return true
