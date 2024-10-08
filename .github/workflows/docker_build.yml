@@ -1,8 +1,7 @@
 on:
-  push:
-    branches:
-      - '**'  # Trigger on any push to any branch
   pull_request:
+    branches:
+      - '**'  # Trigger on any PR to any branch
     types: [opened, synchronize, reopened]  # Trigger on PR creation and updates
 
 name: Docker Build and Run
