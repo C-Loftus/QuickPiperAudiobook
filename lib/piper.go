@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -157,10 +158,25 @@ func PiperIsInstalled(installationPath string) bool {
 	return true
 }
 
+func getDownloadURL() string {
+	os := runtime.GOOS
+	arch := runtime.GOARCH
+
+	if os == "Darwin" {
+		if arch == "arm64" {
+			arch = "aarch64"
+		}
+
+		return "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_macos_" + arch + ".tar.gz"
+	} else {
+		return "https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_" + arch + ".tar.gz"
+	}
+}
+
 func InstallPiper(installationDir string) error {
 	fmt.Println("Installing piper...")
 
-	resp, err := http.Get("https://github.com/rhasspy/piper/releases/download/v1.2.0/piper_amd64.tar.gz")
+	resp, err := http.Get(getDownloadURL())
 	if err != nil {
 		return fmt.Errorf("failed to download piper: %v", err)
 	}
