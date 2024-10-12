@@ -15,6 +15,10 @@ var ModelToURL = map[string]string{
 	"en_US-hfc_female-medium.onnx":            "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/hfc_female/medium/en_US-hfc_female-medium.onnx",
 	"en_US-lessac-medium.onnx":                "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx",
 	"en_GB-northern_english_male-medium.onnx": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/northern_english_male/medium/en_GB-northern_english_male-medium.onnx",
+	// Below is an example of a non-English model
+	// I happily accept PRs for others here. It is just a bit tedious to enumerate them all
+	// since some do not follow the same pattern.
+	"zh_CN-huayan-medium.onnx": "https://huggingface.co/rhasspy/piper-voices/resolve/main/zh/zh_CN/huayan/medium/zh_CN-huayan-medium.onnx",
 }
 
 func ExpandModelPath(modelName string, defaultModelDir string) (string, error) {
@@ -25,14 +29,15 @@ func ExpandModelPath(modelName string, defaultModelDir string) (string, error) {
 		if _, err := os.Stat(modelName + ".json"); err == nil {
 			return modelName, nil
 		}
-		return "", fmt.Errorf("onnx for model: %s was found but the corresponding onnx.json was not", modelName)
+		return "", fmt.Errorf("onnx for model '%s' was found but the corresponding onnx.json was not", modelName)
 	}
+
 	if _, err := os.Stat(filepath.Join(defaultModelDir, modelName)); err == nil {
 		if _, err := os.Stat(filepath.Join(defaultModelDir, modelName) + ".json"); err == nil {
 			return filepath.Join(defaultModelDir, modelName), nil
 		}
-		return "", fmt.Errorf("onnx for model: %s was found in the model directory: %s but the corresponding onnx.json was not", modelName, defaultModelDir)
+		return "", fmt.Errorf("onnx for model '%s' was found in the model directory: '%s' but the corresponding onnx.json was not", modelName, defaultModelDir)
 
 	}
-	return "", fmt.Errorf("model not found: %s", modelName)
+	return "", fmt.Errorf("model: %s", modelName)
 }

@@ -1,4 +1,5 @@
-## This dockerfile is primarily for testing. It can be used like the following:
+# This dockerfile can be used to build a binary for use with the QuickPiperAudiobook command. 
+# You can use it for testing, or other architectures that don't have a piper build.
 # docker build -t quickpiperaudiobook .
 # docker run quickpiperaudiobook /app/examples/lorem_ipsum.txt
 
@@ -6,14 +7,12 @@ FROM --platform=linux/amd64 golang:1.22 as build
 
 WORKDIR /app
 
-# Copy all the code from the current directory
 COPY . .
 
 # Install Go dependencies and build the binary
 RUN go mod tidy && \
     go build -o QuickPiperAudiobook .
 
-# Final stage
 FROM --platform=linux/amd64 ubuntu:latest
 
 # Install runtime dependencies
