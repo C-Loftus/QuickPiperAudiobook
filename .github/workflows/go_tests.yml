@@ -18,5 +18,15 @@ jobs:
         with:
           go-version: '1.22'
 
+      - name: Install Calibre
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y calibre
+
+      - name: Ensure ebook-convert is in PATH
+        run: |
+          echo "$(dirname $(which ebook-convert)) is in PATH"
+          ebook-convert --version  # This will fail if ebook-convert is not installed correctly
+
       - name: Run Go tests
         run: go test ./... -p 1 -count=1
