@@ -1,5 +1,6 @@
 {
     "editor.formatOnType": true,
     // hide git ignored files
-    "explorer.excludeGitIgnore": false
+    "explorer.excludeGitIgnore": false,
+    "go.testFlags": ["-count=1"] // disable caching for go tests
 }

@@ -2,7 +2,7 @@
 # docker build -t quickpiperaudiobook .
 # docker run quickpiperaudiobook /app/examples/lorem_ipsum.txt
 
-FROM --platform=linux/amd64 golang:latest as build
+FROM --platform=linux/amd64 golang:1.22 as build
 
 WORKDIR /app
 

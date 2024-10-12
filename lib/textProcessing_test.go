@@ -2,6 +2,7 @@ package lib
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -88,7 +89,42 @@ func TestRemoveDiacritics_FileNotExist(t *testing.T) {
 		t.Fatal("expected error but got nil")
 	}
 
-	if err.Error() != "file is nil" {
+	if err.Error() != "file to remove diacritics from is nil" {
 		t.Errorf("unexpected error: got %v, want %v", err.Error(), "file is nil")
 	}
+}
+
+func TestPiperWithRemovedDiacritics(t *testing.T) {
+	homeDir, _ := os.UserHomeDir()
+	path := filepath.Join(homeDir, ".config/QuickPiperAudiobook")
+
+	if !PiperIsInstalled(path) {
+		if err := InstallPiper(path); err != nil {
+			t.Fatalf("error installing piper: %v", err)
+		}
+	}
+
+	model := "en_US-hfc_male-medium.onnx"
+	if err := DownloadModelIfNotExists(model, "."); err != nil {
+		t.Fatalf("error grabbing model: %v", err)
+	}
+
+	// read in test_diacritics.txt
+	inputFile, err := os.Open("test_diacritics.txt")
+	if err != nil {
+		t.Fatalf("failed to open input file: %v", err)
+	}
+	defer inputFile.Close()
+
+	// Call RemoveDiacritics function
+	outputFile, err := RemoveDiacritics(inputFile)
+	if err != nil {
+		t.Fatalf("RemoveDiacritics failed: %v", err)
+	}
+	defer os.Remove(outputFile.Name())
+
+	if err := RunPiper("test_diacritics.txt", model, outputFile, "/tmp/"); err != nil {
+		t.Fatalf("error running piper: %v", err)
+	}
+
 }

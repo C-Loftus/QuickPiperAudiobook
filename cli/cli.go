@@ -146,6 +146,9 @@ func RunCLI() {
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		ctx.FatalIfErrorf(err)
+	} else if data == nil {
+		fmt.Println("After converting" + cli.Input + "to txt, no data was generated.")
+		return
 	} else {
 		fmt.Println("Text conversion completed successfully.")
 	}

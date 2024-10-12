@@ -12,11 +12,11 @@ import (
 
 func RemoveDiacritics(file *os.File) (*os.File, error) {
 	if file == nil {
-		return nil, fmt.Errorf("file is nil")
+		return nil, fmt.Errorf("file to remove diacritics from is nil")
 	}
 
 	// Create a temporary file for the output
-	tmpFile, err := os.CreateTemp("", "diacritics-removed-*.txt")
+	tmpFile, err := os.CreateTemp("/tmp/", "diacritics-removed-*.txt")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary file: %v", err)
 	}
@@ -106,8 +106,6 @@ func GetConvertedRawText(inputPath string) (*os.File, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary file: %v", err)
 	}
-	defer tmpFile.Close()
-
 	c := color.New(color.Bold, color.FgMagenta)
 	c.Println("Converting " + filepath.Base(inputPath) + " to the proper intermediary text format...")
 

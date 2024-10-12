@@ -16,8 +16,11 @@ import (
 	"github.com/gen2brain/beeep"
 )
 
-func RunPiper(filename string, // we need to have the filename here since the file passed in is a tmp file and a dummy name
-	model string, file *os.File, outdir string) error {
+func RunPiper(
+	filename string, // filename must be specified since the file passed in is a tmp file and a dummy name
+	model string, // piper model used
+	file *os.File, // file with text to convert
+	outdir string) error {
 
 	// Debugging: Read file content to check if it's empty
 	fileContent, err := io.ReadAll(file)
