@@ -1,6 +1,9 @@
 name: Go Test
 
-on: [push, pull_request]
+on: 
+  push:
+    # only trigger on branches, not on tags
+    branches: '**'
 
 jobs:
   test:
@@ -16,4 +19,4 @@ jobs:
           go-version: '1.22'
 
       - name: Run Go tests
-        run: /usr/local/go/bin/go test ./... -p 1 -count=1
+        run: go test ./... -p 1 -count=1
