@@ -19,7 +19,6 @@ Listen to sample output [ here ](./examples/)
 > You don't need to have piper installed. This program manages piper and the associated models
 
 
-
 ## Usage 
 
 * Pass in either a local file or a remote URL to generate an audiobook: 
