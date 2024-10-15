@@ -28,10 +28,13 @@ Posłuchaj przykładowego nagrania [tutaj](./examples/)
 ### Języki inne niż angielski oraz obsługa kodowania UTF-8
 
 * Pobierz model dla wybranego języka (.onnx i .json) z [piper models](https://rhasspy.github.io/piper-samples/)
-  * np. `pl_PL-mls_6892-low.onnx` i odpowiadający mu `pl_PL-mls_6892-low.onnx.json` (zmień nazwę, jeśli to konieczne)
+  * np. `pl_PL-gosia-medium.onnx` i odpowiadający mu `pl_PL-gosia-medium.onnx.json` (zmień nazwę, jeśli to konieczne)
 * Umieść je w katalogu `~/.config/QuickPiperAudiobook/`
 * Użyj flag `--speak-utf-8` i `--model=`
-  * np. `./QuickPiperAudiobook-linux-amd64 --speak-utf-8 --model=pl_PL-mls_6892-low.onnx MaszynaTuringa_Wikipedia.pdf`
+  * np. `./QuickPiperAudiobook-linux-amd64 --speak-utf-8 --model=pl_PL-gosia-medium.onnx MaszynaTuringa_Wikipedia.pdf`
+
+> [!NOTE]
+> Pomyśl o dodaniu tego modelu do pliku konfiguracyjnego jeżeli zamierzasz używać go często
 
 ### Konfiguracja
 
