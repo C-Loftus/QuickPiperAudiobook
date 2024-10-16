@@ -31,10 +31,10 @@ Posłuchaj przykładowego nagrania [tutaj](./examples/)
   * np. `pl_PL-gosia-medium.onnx` i odpowiadający mu `pl_PL-gosia-medium.onnx.json` (zmień nazwę, jeśli to konieczne)
 * Umieść je w katalogu `~/.config/QuickPiperAudiobook/`
 * Użyj flag `--speak-utf-8` i `--model=`
-  * np. `./QuickPiperAudiobook-linux-amd64 --speak-utf-8 --model=pl_PL-gosia-medium.onnx MaszynaTuringa_Wikipedia.pdf`
+  * np. `./QuickPiperAudiobook --speak-utf-8 --model=pl_PL-gosia-medium.onnx MaszynaTuringa_Wikipedia.pdf`
 
 > [!NOTE]
-> Pomyśl o dodaniu tego modelu do pliku konfiguracyjnego jeżeli zamierzasz używać go często
+> Pomyśl o dodaniu wybranego, podstawowego modelu do pliku konfiguracyjnego jeżeli zamierzasz go często używać
 
 ### Konfiguracja
 
