@@ -26,6 +26,16 @@ Listen to sample output [ here ](./examples/)
 * For a full list of options use the `--help` flag
    * i.e. `./QuickPiperAudiobook --help`
 
+### Non-English / UTF-8
+
+* Grab a model for the language of choice (.onnx and .json) from the [piper models](https://rhasspy.github.io/piper-samples/)
+  * i.e. `pl_PL-gosia-medium.onnx` and corresponding `pl_PL-gosia-medium.onnx.json` (rename if needed)
+* Put them in `~/.config/QuickPiperAudiobook/`
+* Use the `--speak-utf-8` and `--model=`  flags to specify you want utf characters to be spoken with a specific model
+  * i.e. `./QuickPiperAudiobook --speak-utf-8 --model=pl_PL-gosia-medium.onnx MaszynaTuringa_Wikipedia.pdf`
+
+> [!NOTE]  
+> Consider specifying this model as the default in the configuration file if you plan to use it frequenlty
 
 ### Configuring
 
