@@ -13,6 +13,9 @@ type PipedOutput struct {
 }
 
 func RunPiped(cmd string, pipedInput io.Reader) (PipedOutput, error) {
+	if pipedInput == nil {
+		return PipedOutput{}, fmt.Errorf("piped input was nil")
+	}
 
 	fullCmd := exec.Command("sh", "-c", cmd)
 

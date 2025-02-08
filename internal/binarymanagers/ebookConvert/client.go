@@ -50,5 +50,11 @@ func ConvertToText(input io.Reader, fileExt string) (io.Reader, error) {
 		return nil, fmt.Errorf("failed to convert ebook: %s\nOutput: %s", err, string(output))
 	}
 
-	return tmpOutputFile, nil
+	// Return the output file as a reader
+	outputFile, err := os.Open(tmpOutputFile.Name())
+	if err != nil {
+		return nil, fmt.Errorf("failed to open output file: %v", err)
+	}
+
+	return outputFile, nil
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // Piper has hundreds of pretrained models on the sample Website
@@ -41,51 +40,4 @@ func expandModelPath(modelName string, defaultModelDir string) (string, error) {
 
 	}
 	return "", fmt.Errorf("model '%s' was not found in the current directory or the default model directory: '%s'", modelName, defaultModelDir)
-}
-
-func findModels(dir string) ([]string, error) {
-
-	if strings.HasPrefix(dir, "~/") {
-		usr, err := os.UserHomeDir()
-		if err != nil {
-			return nil, fmt.Errorf("error getting user home directory: %v", err)
-		}
-		dir = filepath.Join(usr, dir[2:])
-	}
-
-	// Read the directory
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		return nil, fmt.Errorf("error reading directory: %v", err)
-	}
-
-	var result []string
-	for _, file := range files {
-		// Skip directories
-		if file.IsDir() {
-			continue
-		}
-
-		name := file.Name()
-
-		// Check if the file has a .onnx extension
-		if strings.HasSuffix(name, ".onnx") {
-			// Construct the path for the associated .json file
-			jsonFile := name + ".json"
-			jsonFilePath := filepath.Join(dir, jsonFile)
-
-			// Check if the .json file exists
-			if _, err := os.Stat(jsonFilePath); err == nil {
-				// If the .json file exists, add the .onnx file path to the result
-				abs, err := filepath.Abs(name)
-				if err != nil {
-					return nil, fmt.Errorf("error getting absolute path: %v", err)
-				}
-
-				result = append(result, abs)
-			}
-		}
-	}
-
-	return result, nil
 }

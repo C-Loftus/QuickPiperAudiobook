@@ -15,7 +15,9 @@ var (
 	filePath        string
 	speakDiacritics bool
 	model           string
+	outDir          string
 	config          *viper.Viper
+	outputMp3       bool
 )
 
 var rootCmd = &cobra.Command{
@@ -32,7 +34,7 @@ var rootCmd = &cobra.Command{
 		filePath = args[0]
 		fmt.Printf("Processing file: %s with model: %s", filePath, model)
 
-		err := internal.QuickPiperAudiobook(filePath, model, speakDiacritics, "")
+		err := internal.QuickPiperAudiobook(filePath, model, outDir, speakDiacritics, outputMp3)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -65,6 +67,8 @@ func init() {
 	rootCmd.Flags().BoolP("version", "v", false, "Print the version number")
 	rootCmd.Flags().BoolP("help", "h", false, "Print this help message")
 	rootCmd.Flags().StringVarP(&model, "model", "m", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
+	rootCmd.Flags().StringVarP(&outDir, "output", "o", ".", "The output directory for the audiobook")
+	rootCmd.Flags().BoolVar(&outputMp3, "mp3", true, "Output the audiobook as an mp3 file (requires ffmpeg)")
 }
 
 func Execute() {

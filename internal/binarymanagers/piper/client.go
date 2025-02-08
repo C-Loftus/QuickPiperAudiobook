@@ -10,8 +10,6 @@ import (
 
 	bin "QuickPiperAudiobook/internal/binarymanagers"
 	"QuickPiperAudiobook/internal/lib"
-
-	"github.com/gen2brain/beeep"
 )
 
 type PiperClient struct {
@@ -85,45 +83,49 @@ func NewPiperClient(model string) (*PiperClient, error) {
 
 // filename must be specified since the file passed in is a tmp file and a dummy name
 // file with text to convert
-func (piper PiperClient) Run(filename string, inputFile io.Reader, outdir string) error {
+func (piper PiperClient) Run(filename string, inputFile io.Reader, outdir string, streamOutput bool) (bin.PipedOutput, error) {
 
 	outdir, err := filepath.Abs(outdir)
 
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path: %v", err)
+		return bin.PipedOutput{}, fmt.Errorf("failed to get absolute path: %v", err)
 	}
 
 	// make sure the output directory exists
 	err = os.MkdirAll(outdir, 0755)
 	if err != nil {
-		return fmt.Errorf("output directory specified for piper could not be created: %v", err)
+		return bin.PipedOutput{}, fmt.Errorf("output directory specified for piper could not be created: %v", err)
 	}
 
 	outputName := filepath.Join(outdir, strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))) + ".wav"
 
 	filepathAbs, err := filepath.Abs(outputName)
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path: %v", err)
+		return bin.PipedOutput{}, fmt.Errorf("failed to get absolute path: %v", err)
 	}
 
 	modelAbs, err := filepath.Abs(piper.model)
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path: %v", err)
+		return bin.PipedOutput{}, fmt.Errorf("failed to get absolute path: %v", err)
 	}
 
-	piperCmd := piper.binary + " -m " + modelAbs + " -o " + filepathAbs + " " + filename
+	piperCmd := piper.binary + " -m " + modelAbs
+	if streamOutput {
+		piperCmd += " --output_raw"
+	} else {
+		piperCmd += " --output_file " + filepathAbs
+	}
 
 	output, err := bin.RunPiped(piperCmd, inputFile)
 	if err != nil {
-		return fmt.Errorf("failed to run piper: %v", err)
+		return bin.PipedOutput{}, fmt.Errorf("failed to run piper: %v", err)
 	}
 
-	io.Copy(os.Stdout, output.Stdout)
-	io.Copy(os.Stderr, output.Stderr)
-
-	beeep.Alert("Audiobook created", "Check the terminal for more info", "")
-
-	return nil
+	if streamOutput {
+		return output, nil
+	} else {
+		return bin.PipedOutput{}, nil
+	}
 }
 
 func (piper PiperClient) IsInstalled(installationPath string) bool {
