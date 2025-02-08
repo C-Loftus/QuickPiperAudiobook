@@ -14,12 +14,12 @@
             "args": ["https://example-files.online-convert.com/document/txt/example.txt"],
         },
         {
-            "name": "Convert Chinese",
+            "name": "Convert File",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
-            "args": ["--model=zh_CN-huayan-medium.onnx", "lib/test_chinese.txt", "--speak-utf-8"]
+            "args": ["--model=en_US-hfc_male-medium.onnx", "internal/binarymanagers/ebookConvert/testdata/test.txt"],
         },
     ]
 }

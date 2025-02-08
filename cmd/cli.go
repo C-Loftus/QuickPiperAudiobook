@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	internal "QuickPiperAudiobook/internal"
+	"QuickPiperAudiobook/internal"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -21,8 +21,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "QuickPiperAudiobook <file>",
 	Short: "Converts an audiobook file to another format",
-	Long: `QuickPiperAudiobook is a tool for converting audiobook files.
-The first argument must be the path to the file you want to convert.`,
+	Long:  "Convert text files from a variety of format into an audiobook",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return fmt.Errorf("requires at least 1 arg")
@@ -31,7 +30,7 @@ The first argument must be the path to the file you want to convert.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath = args[0]
-		fmt.Printf("Processing file: %s\n", filePath)
+		fmt.Printf("Processing file: %s with model: %s", filePath, model)
 
 		err := internal.QuickPiperAudiobook(filePath, model, speakDiacritics, "")
 		if err != nil {
