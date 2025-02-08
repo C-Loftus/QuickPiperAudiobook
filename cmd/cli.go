@@ -2,40 +2,74 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
+
+	internal "QuickPiperAudiobook/internal"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "QuickPiperAudiobook",
-	Short: "Hugo is a very fast static site generator",
-	Long: `A Fast and Flexible Static Site Generator built with
-				  love by spf13 and friends in Go.
-				  Complete documentation is available at http://hugo.spf13.com`,
-	Run: func(cmd *cobra.Command, args []string) {
+var (
+	filePath        string
+	speakDiacritics bool
+	model           string
+	config          *viper.Viper
+)
 
+var rootCmd = &cobra.Command{
+	Use:   "QuickPiperAudiobook <file>",
+	Short: "Converts an audiobook file to another format",
+	Long: `QuickPiperAudiobook is a tool for converting audiobook files.
+The first argument must be the path to the file you want to convert.`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return fmt.Errorf("requires at least 1 arg")
+		}
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		filePath = args[0]
+		fmt.Printf("Processing file: %s\n", filePath)
+
+		err := internal.QuickPiperAudiobook(filePath, model, speakDiacritics, "")
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
-func init() {
+func initConfig() *viper.Viper {
+	v := viper.New()
+	v.SetConfigName("config.yaml")
+	v.SetConfigType("yaml")
+	v.AddConfigPath("/etc/QuickPiperAudiobook/")
+	v.AddConfigPath("$HOME/.config/QuickPiperAudiobook")
+	err := v.ReadInConfig()
 
-	viper.SetConfigName("config.yaml")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("/etc/QuickPiperAudiobook/")
-	viper.AddConfigPath("$HOME/.config/QuickPiperAudiobook")
-	err := viper.ReadInConfig()
-	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-		// Config file not found; ignore error if desired
-	} else {
-		// Config file was found but another error was produced
+	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; continue with defaults
+		} else {
+			log.Fatalf("Error reading config file: %v\n", err)
+		}
 	}
+
+	return v
+}
+
+func init() {
+	config = initConfig()
+	rootCmd.PersistentFlags().StringP("config", "c", "", "config file (default is $HOME/.config/QuickPiperAudiobook/config.yaml)")
+	rootCmd.Flags().BoolVar(&speakDiacritics, "speak-diacritics", false, "Enable UTF-8 speaking mode")
+	rootCmd.Flags().BoolP("version", "v", false, "Print the version number")
+	rootCmd.Flags().BoolP("help", "h", false, "Print this help message")
+	rootCmd.Flags().StringVarP(&model, "model", "m", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }

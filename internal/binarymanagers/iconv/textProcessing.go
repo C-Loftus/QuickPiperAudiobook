@@ -1,7 +1,7 @@
 package iconv
 
 import (
-	"QuickPiperAudiobook/lib/binarymanagers"
+	"QuickPiperAudiobook/internal/binarymanagers"
 	"io"
 )
 
