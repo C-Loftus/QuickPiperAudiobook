@@ -1,6 +1,7 @@
 package piper
 
 import (
+	"QuickPiperAudiobook/internal/lib"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,6 +21,33 @@ var ModelToURL = map[string]string{
 	// I happily accept PRs for others here. It is just a bit tedious to enumerate them all
 	// since some do not follow the same pattern.
 	"zh_CN-huayan-medium.onnx": "https://huggingface.co/rhasspy/piper-voices/resolve/main/zh/zh_CN/huayan/medium/zh_CN-huayan-medium.onnx",
+}
+
+// Try to find the model if it exists and otherwise try to download it
+// Return the full path to the model
+func findOrDownloadModel(modelName, defaultModelDir string) (string, error) {
+
+	fullModelPath, err := expandModelPath(modelName, defaultModelDir)
+	if err == nil {
+		return fullModelPath, nil
+	}
+
+	modelURL, ok := ModelToURL[modelName]
+	if !ok {
+		return "", fmt.Errorf("model '%s' not found", modelName)
+	}
+
+	file, err := lib.DownloadFile(modelURL, modelName, defaultModelDir)
+	if err != nil {
+		return "", fmt.Errorf("error downloading model '%s': %v", modelName, err)
+	}
+	jsonURL := modelURL + ".json"
+	_, err = lib.DownloadFile(jsonURL, modelName+".json", defaultModelDir)
+	if err != nil {
+		return "", fmt.Errorf("error downloading model '%s': %v", modelName, err)
+	}
+	defer file.Close()
+	return file.Name(), nil
 }
 
 func expandModelPath(modelName string, defaultModelDir string) (string, error) {

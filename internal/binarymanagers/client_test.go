@@ -8,13 +8,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRun(t *testing.T) {
+func TestRunBinary(t *testing.T) {
 	output, err := Run("echo hello")
 	require.NoError(t, err)
 	require.Equal(t, "hello\n", output)
 }
 
-func FuzzRunPiped(f *testing.F) {
+func FuzzRunPipedBinary(f *testing.F) {
 	// Test echo to cat
 	f.Fuzz(func(t *testing.T, message string) {
 		echoCmd, err := RunPiped("echo "+message, nil)

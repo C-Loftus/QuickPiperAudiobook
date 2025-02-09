@@ -22,17 +22,17 @@ var rootCmd = &cobra.Command{
 	Long:  "Convert text files from a variety of format into an audiobook",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
-			return fmt.Errorf("requires at least 1 arg")
+			return fmt.Errorf("you must specify a file to convert")
 		}
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := args[0]
-		model := viper.GetString("model")
+		model := config.GetString("model")
 		fmt.Printf("Processing file: %s with model: %s", filePath, model)
 
 		outDir := config.GetString("output")
-		if outDir[0] == '~' {
+		if outDir != "" && outDir[0] == '~' {
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
 				log.Fatal(err)
@@ -72,7 +72,7 @@ func init() {
 	_ = rootCmd.PersistentFlags().String("model", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
 	_ = rootCmd.PersistentFlags().String("output", ".", "The output directory for the audiobook")
 	_ = rootCmd.PersistentFlags().Bool("mp3", true, "Output the audiobook as an mp3 file (requires ffmpeg)")
-	err = viper.BindPFlags(rootCmd.PersistentFlags())
+	err = config.BindPFlags(rootCmd.PersistentFlags())
 	if err != nil {
 		log.Fatalf("Error binding flags: %v\n", err)
 	}

@@ -22,9 +22,9 @@ func TestPiperClient(t *testing.T) {
 
 	t.Run("installs binaries", func(t *testing.T) {
 		dir := CleanupConfigDir(t)
-		client, err := NewPiperClient("test")
+		client, err := NewPiperClient("en_US-lessac-medium.onnx")
 		require.NoError(t, err)
-		require.Equal(t, filepath.Join(dir, "piper"), client.binary)
+		require.Equal(t, filepath.Join(dir, "piper", "piper"), client.binary)
 		_, err = exec.LookPath(client.binary)
 		require.NoError(t, err)
 	})

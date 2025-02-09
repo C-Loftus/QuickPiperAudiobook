@@ -17,7 +17,8 @@ type PiperClient struct {
 	model  string
 }
 
-func install(installationPath string) error {
+// Install the piper binary to the specified path
+func installBinary(installationPath string) error {
 
 	fmt.Println("Installing piper...")
 
@@ -70,12 +71,12 @@ func NewPiperClient(model string) (*PiperClient, error) {
 	if _, err := os.Stat(piperExecutable); err == nil {
 		// piper is already installed
 	} else {
-		if err := install(piperDir); err != nil {
+		if err := installBinary(QuickPiperAudiobookDir); err != nil {
 			return nil, fmt.Errorf("failed to install piper: %v", err)
 		}
 	}
 
-	fullModelPath, err := expandModelPath(model, QuickPiperAudiobookDir)
+	fullModelPath, err := findOrDownloadModel(model, QuickPiperAudiobookDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to expand model path: %v", err)
 	}
@@ -85,7 +86,7 @@ func NewPiperClient(model string) (*PiperClient, error) {
 
 // filename must be specified since the file passed in is a tmp file and a dummy name
 // file with text to convert
-func (piper PiperClient) Run(filename string, inputFile io.Reader, outdir string, streamOutput bool) (bin.PipedOutput, error) {
+func (piper PiperClient) Run(filename string, inputData io.Reader, outdir string, streamOutput bool) (bin.PipedOutput, error) {
 
 	outdir, err := filepath.Abs(outdir)
 
@@ -118,7 +119,7 @@ func (piper PiperClient) Run(filename string, inputFile io.Reader, outdir string
 		piperCmd += " --output_file " + filepathAbs
 	}
 
-	output, err := bin.RunPiped(piperCmd, inputFile)
+	output, err := bin.RunPiped(piperCmd, inputData)
 	if err != nil {
 		return bin.PipedOutput{}, fmt.Errorf("failed to run piper: %v", err)
 	}

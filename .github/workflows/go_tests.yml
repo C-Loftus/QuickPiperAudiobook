@@ -28,5 +28,7 @@ jobs:
           echo "$(dirname $(which ebook-convert)) is in PATH"
           ebook-convert --version  # This will fail if ebook-convert is not installed correctly
 
+      # run with p 1 to prevent concurrent tests mutating the same file
+      # unfortunately we have to do this since ebook-convert requires tmp files and not stdin/stdout
       - name: Run Go tests
         run: go test ./... -p 1 -count=1

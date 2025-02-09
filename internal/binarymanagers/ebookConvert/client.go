@@ -27,7 +27,7 @@ func ConvertToText(input io.Reader, fileExt string) (io.Reader, error) {
 	}
 
 	// have to create a temporary file since ebook-convert doesn't accept stdin
-	tmpInputFile, err := os.CreateTemp("", "ebook-convert-temporary-input-*"+fileExt)
+	tmpInputFile, err := os.CreateTemp("", "ebook-convert-temporary-input-*."+fileExt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary file: %v", err)
 	}

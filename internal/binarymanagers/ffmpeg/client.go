@@ -15,12 +15,18 @@ func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 
 	cmdStr := fmt.Sprintf("ffmpeg -f s16le -ar 22050 -ac 1 -i pipe:0 -acodec libmp3lame -b:a 128k -y %s", outputName)
 
-	_, err := binarymanagers.RunPiped(cmdStr, piperRawAudio)
+	output, err := binarymanagers.RunPiped(cmdStr, piperRawAudio)
+	if err != nil {
+		return err
+	}
+
+	err = output.Handle.Wait()
 	if err != nil {
 		return err
 	}
 
 	validateMp3 := exec.Command("ffmpeg", "-v", "error", "-i", outputName, "-f", "null", "-")
+
 	if err := validateMp3.Run(); err != nil {
 		return fmt.Errorf("mp3 output validation failed: %v", err)
 	}

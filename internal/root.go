@@ -77,6 +77,9 @@ func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, output
 		if err != nil {
 			return err
 		}
+		fmt.Printf("Audiobook created at: %s\n", outputName)
+	} else {
+		fmt.Printf("Audiobook created at: %s\n", filepath.Join(outDir, fileName))
 	}
 
 	err = beeep.Alert("Audiobook created", "Check the terminal for more info", "")
