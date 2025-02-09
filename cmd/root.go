@@ -45,7 +45,7 @@ var rootCmd = &cobra.Command{
 		speakDiacritics := config.GetBool("speak-diacritics")
 		outputMp3 := config.GetBool("mp3")
 
-		err := internal.QuickPiperAudiobook(filePath, model, outDir, speakDiacritics, outputMp3)
+		_, err := internal.QuickPiperAudiobook(filePath, model, outDir, speakDiacritics, outputMp3)
 		if err != nil {
 			log.Fatal(err)
 		}
