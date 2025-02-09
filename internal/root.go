@@ -17,33 +17,33 @@ import (
 	"github.com/gen2brain/beeep"
 )
 
-// the function for handling all command logic
-func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, outputMp3 bool) error {
+// Run the core audiobook creation process. Does not include any CLI parsing. Returns the filepath of the created audiobook.
+func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, outputMp3 bool) (string, error) {
 	if fileName == "" {
-		return fmt.Errorf("no file was provided")
+		return "", fmt.Errorf("no file was provided")
 	}
 	if model == "" {
-		return fmt.Errorf("no model was provided")
+		return "", fmt.Errorf("no model was provided")
 	}
 	if outDir == "" {
-		return fmt.Errorf("no output directory was provided")
+		return "", fmt.Errorf("no output directory was provided")
 	}
 
 	rawFile, err := os.Open(fileName)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	piper, err := piper.NewPiperClient(model)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	var reader io.Reader
 	if !speakDiacritics {
 		reader, err = iconv.RemoveDiacritics(rawFile)
 		if err != nil {
-			return err
+			return "", err
 		}
 	} else {
 		reader = rawFile
@@ -51,35 +51,37 @@ func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, output
 
 	convertedReader, err := ebookconvert.ConvertToText(reader, filepath.Ext(fileName))
 	if err != nil {
-		return err
+		return "", err
 	}
 
+	var outputName string
 	streamOutput, err := piper.Run(fileName, convertedReader, outDir, outputMp3)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if outputMp3 {
 		buf := new(bytes.Buffer)
 		written, err := io.Copy(buf, streamOutput.Stdout)
 		if err != nil {
-			return fmt.Errorf("failed to read Piper output: %v", err)
+			return "", fmt.Errorf("failed to read Piper output: %v", err)
 		}
 
 		if buf.Len() == 0 || written == 0 {
-			return fmt.Errorf("piper produced no audio output")
+			return "", fmt.Errorf("piper produced no audio output")
 		}
 
 		fileBase := filepath.Base(fileName)
 		fileNameWithoutExt := strings.TrimSuffix(fileBase, filepath.Ext(fileBase))
-		outputName := filepath.Join(outDir, fileNameWithoutExt) + ".mp3"
+		outputName = filepath.Join(outDir, fileNameWithoutExt) + ".mp3"
 
 		err = ffmpeg.OutputToMp3(bytes.NewReader(buf.Bytes()), outputName)
 		if err != nil {
-			return err
+			return "", err
 		}
 		fmt.Printf("Audiobook created at: %s\n", outputName)
 	} else {
-		fmt.Printf("Audiobook created at: %s\n", filepath.Join(outDir, fileName))
+		outputName = filepath.Join(outDir, fileName)
+		fmt.Printf("Audiobook created at: %s\n", outputName)
 	}
 
 	err = beeep.Alert("Audiobook created", "Check the terminal for more info", "")
@@ -87,5 +89,5 @@ func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, output
 		log.Default().Printf("Failed sending notification: %v", err)
 	}
 
-	return nil
+	return outputName, nil
 }

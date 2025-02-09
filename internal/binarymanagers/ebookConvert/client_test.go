@@ -31,8 +31,3 @@ func TestConvertToText(t *testing.T) {
 	require.NoError(t, err, "failed to read expected output")
 	require.Contains(t, string(outputBytes), string(expectedOutput), "output text does not match expected output")
 }
-
-func TestCheckInstalled(t *testing.T) {
-	err := checkInstalled()
-	require.NoError(t, err, "checkInstalled returned an error")
-}

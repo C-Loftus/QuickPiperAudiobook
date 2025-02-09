@@ -7,23 +7,14 @@ import (
 	"os/exec"
 )
 
-func checkInstalled() error {
-	_, err := exec.LookPath("ebook-convert")
-	if err != nil {
-		return fmt.Errorf("the ebook-convert command was not found in your PATH. Please install it with your package manager")
-	}
-
-	return nil
-}
-
-func SplitEpub(input io.Reader) (io.Reader, error) {
-	return ConvertToText(input, "epub")
-}
-
+// Convert input data to text using the ebook-convert command
+// Assumings that the input data is in the format of the file extension provided
+// Will output .txt file since piper doesn't support reading other formats
 func ConvertToText(input io.Reader, fileExt string) (io.Reader, error) {
 
-	if err := checkInstalled(); err != nil {
-		return nil, err
+	_, err := exec.LookPath("ebook-convert")
+	if err != nil {
+		return nil, fmt.Errorf("the ebook-convert command was not found in your PATH. Please install it with your package manager")
 	}
 
 	// have to create a temporary file since ebook-convert doesn't accept stdin

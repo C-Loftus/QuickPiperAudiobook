@@ -16,6 +16,8 @@ var (
 	config *viper.Viper
 )
 
+// Root command for the CLI
+// Does all parsing, and then passes arguments to the internal package
 var rootCmd = &cobra.Command{
 	Use:   "QuickPiperAudiobook <file>",
 	Short: "Converts an audiobook file to another format",

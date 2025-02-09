@@ -7,7 +7,7 @@ import (
 	"os/exec"
 )
 
-// OutputToMp3 converts raw PCM audio to MP3 using ffmpeg
+// Convert raw PCM audio from piper to MP3 using ffmpeg
 func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 	if _, err := exec.LookPath("ffmpeg"); err != nil {
 		return fmt.Errorf("ffmpeg not found in PATH: %v", err)
