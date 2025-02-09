@@ -3,7 +3,7 @@
 # docker build -t quickpiperaudiobook .
 # docker run quickpiperaudiobook /app/examples/lorem_ipsum.txt
 
-FROM --platform=linux/amd64 golang:1.22 as build
+FROM golang:1.22 AS build
 
 WORKDIR /app
 
@@ -13,12 +13,13 @@ COPY . .
 RUN go mod tidy && \
     go build -o QuickPiperAudiobook .
 
-FROM --platform=linux/amd64 ubuntu:latest
+FROM ubuntu:latest
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
     # needed for ebook-convert
     calibre \
+    ffmpeg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
