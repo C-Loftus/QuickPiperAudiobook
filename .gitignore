@@ -11,3 +11,6 @@
 QuickPiperAudiobook
 
 *.mp3
+
+
+__debug*

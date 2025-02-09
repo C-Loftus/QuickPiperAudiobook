@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestExpandModelPath(t *testing.T) {
@@ -14,10 +16,12 @@ func TestExpandModelPath(t *testing.T) {
 	modelJSONPath := modelPath + ".json"
 
 	// Test case 1: Both ONNX and JSON files are present
-	os.WriteFile(modelPath, []byte("dummy ONNX model"), 0644)
-	os.WriteFile(modelJSONPath, []byte("dummy JSON"), 0644)
+	err := os.WriteFile(modelPath, []byte("dummy ONNX model"), 0644)
+	require.NoError(t, err)
+	err = os.WriteFile(modelJSONPath, []byte("dummy JSON"), 0644)
+	require.NoError(t, err)
 
-	result, err := ExpandModelPath(modelName, tempDir)
+	result, err := expandModelPath(modelName, tempDir)
 	if err != nil || result != modelPath {
 		t.Errorf("Expected %s, got %s, error: %v", modelPath, result, err)
 	}
@@ -25,13 +29,13 @@ func TestExpandModelPath(t *testing.T) {
 	// Test case 2: ONNX file is present, but JSON file is missing
 	os.Remove(modelJSONPath) // remove the JSON file
 
-	result, err = ExpandModelPath(modelName, tempDir)
+	result, err = expandModelPath(modelName, tempDir)
 	if err == nil || result != "" {
 		t.Errorf("Expected error for missing JSON file, got: %v, result: %s", err, result)
 	}
 
 	// Test case 3: Model not found
-	result, err = ExpandModelPath("non_existent_model", tempDir)
+	result, err = expandModelPath("non_existent_model", tempDir)
 	if err == nil || result != "" {
 		t.Errorf("Expected error for non-existent model, got: %v, result: %s", err, result)
 	}
@@ -41,10 +45,12 @@ func TestExpandModelPath(t *testing.T) {
 	modelPathInDir := filepath.Join(tempDir, modelNameInDir)
 	modelJSONPathInDir := modelPathInDir + ".json"
 
-	os.WriteFile(modelPathInDir, []byte("dummy ONNX model"), 0644)
-	os.WriteFile(modelJSONPathInDir, []byte("dummy JSON"), 0644)
+	err = os.WriteFile(modelPathInDir, []byte("dummy ONNX model"), 0644)
+	require.NoError(t, err)
+	err = os.WriteFile(modelJSONPathInDir, []byte("dummy JSON"), 0644)
+	require.NoError(t, err)
 
-	result, err = ExpandModelPath(modelNameInDir, tempDir)
+	result, err = expandModelPath(modelNameInDir, tempDir)
 	if err != nil || result != modelPathInDir {
 		t.Errorf("Expected %s, got %s, error: %v", modelPathInDir, result, err)
 	}

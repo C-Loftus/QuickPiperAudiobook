@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"QuickPiperAudiobook/internal"
 
@@ -36,7 +37,7 @@ var rootCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal(err)
 			}
-			outDir = homeDir + outDir[1:]
+			outDir = homeDir + strings.TrimPrefix(outDir, "~")
 		}
 
 		speakDiacritics := config.GetBool("speak-diacritics")

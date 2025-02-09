@@ -2,81 +2,31 @@ package piper
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-func TestModels(t *testing.T) {
-
-	if err := DownloadModelIfNotExists("en_US-hfc_male-medium.onnx", "."); err != nil {
-		t.Fatalf("error grabbing model: %v", err)
-	}
-
-	models, err := findModels(".")
-	if err != nil {
-		t.Fatalf("error finding models: %v", err)
-	}
-
-	if len(models) == 0 {
-		t.Fatalf("no models found")
-	}
+func CleanupConfigDir(t *testing.T) string {
+	homedir, err := os.UserHomeDir()
+	require.NoError(t, err)
+	QuickPiperAudiobookDir := filepath.Join(homedir, ".config", "QuickPiperAudiobook")
+	err = os.RemoveAll(QuickPiperAudiobookDir)
+	require.NoError(t, err)
+	return QuickPiperAudiobookDir
 }
 
-func TestPiperInstalled(t *testing.T) {
+func TestPiperClient(t *testing.T) {
 
-	homeDir, _ := os.UserHomeDir()
-	path := filepath.Join(homeDir, ".config/QuickPiperAudiobook")
+	t.Run("installs binaries", func(t *testing.T) {
+		dir := CleanupConfigDir(t)
+		client, err := NewPiperClient("test")
+		require.NoError(t, err)
+		require.Equal(t, filepath.Join(dir, "piper"), client.binary)
+		_, err = exec.LookPath(client.binary)
+		require.NoError(t, err)
+	})
 
-	if !PiperIsInstalled(path) {
-		if err := InstallPiper(path); err != nil {
-			t.Fatalf("error installing piper: %v", err)
-		}
-	}
-
-	if !PiperIsInstalled(path) {
-		t.Fatalf("piper should be installed")
-	}
-}
-
-func TestOutput(t *testing.T) {
-	homeDir, _ := os.UserHomeDir()
-	path := filepath.Join(homeDir, ".config/QuickPiperAudiobook")
-
-	if !PiperIsInstalled(path) {
-		if err := InstallPiper(path); err != nil {
-			t.Fatalf("error installing piper: %v", err)
-		}
-	}
-
-	model := "en_US-hfc_male-medium.onnx"
-	if err := DownloadModelIfNotExists(model, "."); err != nil {
-		t.Fatalf("error grabbing model: %v", err)
-	}
-	// create an os.file and write to it
-	file, err := os.CreateTemp("", "piper-test-*.txt")
-	if err != nil {
-		t.Fatalf("error creating temporary file: %v", err)
-	}
-	defer os.Remove(file.Name())
-
-	if _, err := file.Write([]byte("Hello World")); err != nil {
-		t.Fatalf("error writing to file: %v", err)
-	}
-
-	err = RunPiper(file.Name(), model, file, "/tmp/")
-
-	if err != nil {
-		t.Fatalf("error running piper: %v", err)
-	}
-	newFile := filepath.Join("/tmp/", filepath.Base(file.Name()))
-
-	if _, err := os.Stat(newFile); os.IsNotExist(err) {
-		t.Fatalf("output file not created")
-	}
-	// print the contents of the file
-	content, err := os.ReadFile(newFile)
-	if err != nil {
-		t.Fatalf("error reading file: %v", err)
-	}
-	t.Log(string(content))
 }

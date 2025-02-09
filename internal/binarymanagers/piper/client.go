@@ -70,7 +70,9 @@ func NewPiperClient(model string) (*PiperClient, error) {
 	if _, err := os.Stat(piperExecutable); err == nil {
 		// piper is already installed
 	} else {
-		install(piperDir)
+		if err := install(piperDir); err != nil {
+			return nil, fmt.Errorf("failed to install piper: %v", err)
+		}
 	}
 
 	fullModelPath, err := expandModelPath(model, QuickPiperAudiobookDir)
@@ -124,18 +126,11 @@ func (piper PiperClient) Run(filename string, inputFile io.Reader, outdir string
 	if streamOutput {
 		return output, nil
 	} else {
-		output.Handle.Wait()
+		err = output.Handle.Wait()
+		if err != nil {
+			return bin.PipedOutput{}, fmt.Errorf("failed to wait for piper: %v", err)
+		}
 		fmt.Println("Piper output saved to: " + filepathAbs)
 		return bin.PipedOutput{}, nil
 	}
-}
-
-func (piper PiperClient) IsInstalled(installationPath string) bool {
-
-	piperpath := filepath.Join(installationPath, "piper")
-
-	if _, err := os.Stat(piperpath); os.IsNotExist(err) {
-		return false
-	}
-	return true
 }

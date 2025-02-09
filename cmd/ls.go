@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"QuickPiperAudiobook/internal/binarymanagers/piper"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -19,6 +20,8 @@ var versionCmd = &cobra.Command{
 		if err != nil {
 			cmd.PrintErrln(err)
 		}
-		cmd.Println(models)
+		for _, model := range models {
+			cmd.Println(filepath.Base(model))
+		}
 	},
 }
