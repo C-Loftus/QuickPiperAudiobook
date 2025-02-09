@@ -12,12 +12,7 @@ import (
 )
 
 var (
-	filePath        string
-	speakDiacritics bool
-	model           string
-	outDir          string
-	config          *viper.Viper
-	outputMp3       bool
+	config *viper.Viper
 )
 
 var rootCmd = &cobra.Command{
@@ -31,8 +26,21 @@ var rootCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		filePath = args[0]
+		filePath := args[0]
+		model := viper.GetString("model")
 		fmt.Printf("Processing file: %s with model: %s", filePath, model)
+
+		outDir := config.GetString("output")
+		if outDir[0] == '~' {
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				log.Fatal(err)
+			}
+			outDir = homeDir + outDir[1:]
+		}
+
+		speakDiacritics := config.GetBool("speak-diacritics")
+		outputMp3 := config.GetBool("mp3")
 
 		err := internal.QuickPiperAudiobook(filePath, model, outDir, speakDiacritics, outputMp3)
 		if err != nil {
@@ -41,13 +49,13 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-func initConfig() *viper.Viper {
-	v := viper.New()
-	v.SetConfigName("config.yaml")
-	v.SetConfigType("yaml")
-	v.AddConfigPath("/etc/QuickPiperAudiobook/")
-	v.AddConfigPath("$HOME/.config/QuickPiperAudiobook")
-	err := v.ReadInConfig()
+func init() {
+	config = viper.New()
+	config.SetConfigName("config.yaml")
+	config.SetConfigType("yaml")
+	config.AddConfigPath("/etc/QuickPiperAudiobook/")
+	config.AddConfigPath("$HOME/.config/QuickPiperAudiobook")
+	err := config.ReadInConfig()
 
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
@@ -57,18 +65,17 @@ func initConfig() *viper.Viper {
 		}
 	}
 
-	return v
-}
-
-func init() {
-	config = initConfig()
 	rootCmd.PersistentFlags().StringP("config", "c", "", "config file (default is $HOME/.config/QuickPiperAudiobook/config.yaml)")
-	rootCmd.Flags().BoolVar(&speakDiacritics, "speak-diacritics", false, "Enable UTF-8 speaking mode")
-	rootCmd.Flags().BoolP("version", "v", false, "Print the version number")
-	rootCmd.Flags().BoolP("help", "h", false, "Print this help message")
-	rootCmd.Flags().StringVarP(&model, "model", "m", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
-	rootCmd.Flags().StringVarP(&outDir, "output", "o", ".", "The output directory for the audiobook")
-	rootCmd.Flags().BoolVar(&outputMp3, "mp3", true, "Output the audiobook as an mp3 file (requires ffmpeg)")
+
+	_ = rootCmd.PersistentFlags().Bool("speak-diacritics", false, "Enable UTF-8 speaking mode")
+	_ = rootCmd.PersistentFlags().String("model", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
+	_ = rootCmd.PersistentFlags().String("output", ".", "The output directory for the audiobook")
+	_ = rootCmd.PersistentFlags().Bool("mp3", true, "Output the audiobook as an mp3 file (requires ffmpeg)")
+	err = viper.BindPFlags(rootCmd.PersistentFlags())
+	if err != nil {
+		log.Fatalf("Error binding flags: %v\n", err)
+	}
+
 }
 
 func Execute() {

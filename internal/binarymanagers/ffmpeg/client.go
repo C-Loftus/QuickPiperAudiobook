@@ -1,61 +1,27 @@
 package ffmpeg
 
 import (
+	"QuickPiperAudiobook/internal/binarymanagers"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 )
 
 // OutputToMp3 converts raw PCM audio to MP3 using ffmpeg
-func OutputToMp3(input io.Reader, outputName string) error {
-	// Verify ffmpeg is available
+func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 	if _, err := exec.LookPath("ffmpeg"); err != nil {
 		return fmt.Errorf("ffmpeg not found in PATH: %v", err)
 	}
 
-	// Create FFmpeg command
-	cmd := exec.Command("ffmpeg",
-		"-f", "s16le", // Raw PCM format
-		"-ar", "22050", // Sample rate
-		"-ac", "1", // Mono
-		"-i", "pipe:0", // Input from stdin
-		"-acodec", "libmp3lame",
-		"-b:a", "128k", // MP3 bitrate
-		"-y", outputName, // Output file
-	)
+	cmdStr := fmt.Sprintf("ffmpeg -f s16le -ar 22050 -ac 1 -i pipe:0 -acodec libmp3lame -b:a 128k -y %s", outputName)
 
-	// Set up ffmpeg stdin
-	ffmpegIn, err := cmd.StdinPipe()
+	_, err := binarymanagers.RunPiped(cmdStr, piperRawAudio)
 	if err != nil {
-		return fmt.Errorf("failed to create stdin pipe: %v", err)
+		return err
 	}
 
-	// Set up ffmpeg stderr for debugging
-	cmd.Stderr = os.Stderr
-
-	// Start ffmpeg
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to start ffmpeg: %v", err)
-	}
-
-	// Stream PCM data to ffmpeg
-	_, err = io.Copy(ffmpegIn, input)
-	if err != nil {
-		return fmt.Errorf("failed to write PCM data to ffmpeg: %v", err)
-	}
-
-	// Close ffmpeg input to signal end of stream
-	ffmpegIn.Close()
-
-	// Wait for ffmpeg to finish
-	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("ffmpeg command failed: %v", err)
-	}
-
-	// Validate MP3 output
-	validateCmd := exec.Command("ffmpeg", "-v", "error", "-i", outputName, "-f", "null", "-")
-	if err := validateCmd.Run(); err != nil {
+	validateMp3 := exec.Command("ffmpeg", "-v", "error", "-i", outputName, "-f", "null", "-")
+	if err := validateMp3.Run(); err != nil {
 		return fmt.Errorf("mp3 output validation failed: %v", err)
 	}
 

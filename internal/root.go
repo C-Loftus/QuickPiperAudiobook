@@ -3,6 +3,7 @@ package internal
 import (
 	"QuickPiperAudiobook/internal/binarymanagers/ffmpeg"
 	"QuickPiperAudiobook/internal/binarymanagers/piper"
+	"QuickPiperAudiobook/internal/lib"
 	"bytes"
 	"fmt"
 	"io"
@@ -33,6 +34,9 @@ func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, output
 	if err != nil {
 		return err
 	}
+	if lib.GetSize(rawFile) == 0 {
+		return fmt.Errorf("file is empty")
+	}
 
 	piper, err := piper.NewPiperClient(model)
 	if err != nil {
@@ -44,6 +48,9 @@ func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, output
 		reader, err = iconv.RemoveDiacritics(rawFile)
 		if err != nil {
 			return err
+		}
+		if lib.GetSize(reader) == 0 {
+			return fmt.Errorf("file is empty")
 		}
 	} else {
 		reader = rawFile

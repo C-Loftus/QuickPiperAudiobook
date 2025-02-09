@@ -19,7 +19,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
-            "args": ["--model=en_US-hfc_male-medium.onnx", "internal/binarymanagers/ebookConvert/testdata/test.txt"],
+            "args": ["internal/binarymanagers/ebookConvert/testdata/test.txt"],
         },
     ]
 }

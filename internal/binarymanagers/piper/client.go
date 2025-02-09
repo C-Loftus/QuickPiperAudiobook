@@ -124,6 +124,8 @@ func (piper PiperClient) Run(filename string, inputFile io.Reader, outdir string
 	if streamOutput {
 		return output, nil
 	} else {
+		output.Handle.Wait()
+		fmt.Println("Piper output saved to: " + filepathAbs)
 		return bin.PipedOutput{}, nil
 	}
 }

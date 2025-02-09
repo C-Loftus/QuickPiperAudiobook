@@ -29,9 +29,7 @@ func RunPiped(cmd string, pipedInput io.Reader) (PipedOutput, error) {
 		return PipedOutput{}, fmt.Errorf("failed getting stderr: %v", err)
 	}
 
-	if pipedInput != nil {
-		fullCmd.Stdin = pipedInput
-	}
+	fullCmd.Stdin = pipedInput
 
 	if err := fullCmd.Start(); err != nil {
 		return PipedOutput{}, fmt.Errorf("command failed: %v", err)
