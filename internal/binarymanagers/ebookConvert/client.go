@@ -12,8 +12,7 @@ import (
 // Will output .txt file since piper doesn't support reading other formats
 func ConvertToText(input io.Reader, fileExt string) (io.Reader, error) {
 
-	_, err := exec.LookPath("ebook-convert")
-	if err != nil {
+	if _, err := exec.LookPath("ebook-convert"); err != nil {
 		return nil, fmt.Errorf("the ebook-convert command was not found in your PATH. Please install it with your package manager")
 	}
 

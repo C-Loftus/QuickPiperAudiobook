@@ -86,30 +86,30 @@ func NewPiperClient(model string) (*PiperClient, error) {
 
 // filename must be specified since the file passed in is a tmp file and a dummy name
 // file with text to convert
-func (piper PiperClient) Run(filename string, inputData io.Reader, outdir string, streamOutput bool) (bin.PipedOutput, error) {
+func (piper PiperClient) Run(filename string, inputData io.Reader, outdir string, streamOutput bool) (bin.PipedOutput, string, error) {
 
 	outdir, err := filepath.Abs(outdir)
 
 	if err != nil {
-		return bin.PipedOutput{}, fmt.Errorf("failed to get absolute path: %v", err)
+		return bin.PipedOutput{}, "", fmt.Errorf("failed to get absolute path: %v", err)
 	}
 
 	// make sure the output directory exists
 	err = os.MkdirAll(outdir, 0755)
 	if err != nil {
-		return bin.PipedOutput{}, fmt.Errorf("output directory specified for piper could not be created: %v", err)
+		return bin.PipedOutput{}, "", fmt.Errorf("output directory specified for piper could not be created: %v", err)
 	}
 
 	outputName := filepath.Join(outdir, strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))) + ".wav"
 
 	filepathAbs, err := filepath.Abs(outputName)
 	if err != nil {
-		return bin.PipedOutput{}, fmt.Errorf("failed to get absolute path: %v", err)
+		return bin.PipedOutput{}, "", fmt.Errorf("failed to get absolute path: %v", err)
 	}
 
 	modelAbs, err := filepath.Abs(piper.model)
 	if err != nil {
-		return bin.PipedOutput{}, fmt.Errorf("failed to get absolute path: %v", err)
+		return bin.PipedOutput{}, "", fmt.Errorf("failed to get absolute path: %v", err)
 	}
 
 	piperCmd := piper.binary + " -m " + modelAbs
@@ -121,17 +121,17 @@ func (piper PiperClient) Run(filename string, inputData io.Reader, outdir string
 
 	output, err := bin.RunPiped(piperCmd, inputData)
 	if err != nil {
-		return bin.PipedOutput{}, fmt.Errorf("failed to run piper: %v", err)
+		return bin.PipedOutput{}, "", fmt.Errorf("failed to run piper: %v", err)
 	}
 
 	if streamOutput {
-		return output, nil
+		return output, "", nil
 	} else {
 		err = output.Handle.Wait()
 		if err != nil {
-			return bin.PipedOutput{}, fmt.Errorf("failed to wait for piper: %v", err)
+			return bin.PipedOutput{}, "", fmt.Errorf("failed to wait for piper: %v", err)
 		}
 		fmt.Println("Piper output saved to: " + filepathAbs)
-		return bin.PipedOutput{}, nil
+		return bin.PipedOutput{}, filepathAbs, nil
 	}
 }

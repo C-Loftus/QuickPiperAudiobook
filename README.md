@@ -1,5 +1,11 @@
 # QuickPiperAudiobook
 
+<p align="center">
+  <a href="./README.md">English</a> |
+  <a href="./README_PL.md">Polski</a>
+</p>
+
+
 Create a natural audiobook for any text content with one command. 
 
  - Converts [PDFs, epub, txt, mobi, djvu, HTML, docx, and more](https://manual.calibre-ebook.com/generated/en/ebook-convert.html)

@@ -1,1 +1,1 @@
-Every directory in `binarymanagers` is a binary like `piper` or `ffmpeg` that we can chain together in order to create an audiobook. `client.go` contains the top level binary runners that handle stdin / stdout.
+Every directory in `binarymanagers` is a binary like `piper` or `ffmpeg` that we can chain together in order to create an audiobook. `client.go` contains the top level runners that handle stdin / stdout and are generic across binaries.

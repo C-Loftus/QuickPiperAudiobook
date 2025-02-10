@@ -3,6 +3,7 @@ package internal
 import (
 	"QuickPiperAudiobook/internal/binarymanagers/ffmpeg"
 	"QuickPiperAudiobook/internal/binarymanagers/piper"
+	"QuickPiperAudiobook/internal/lib"
 	"bytes"
 	"fmt"
 	"io"
@@ -17,30 +18,51 @@ import (
 	"github.com/gen2brain/beeep"
 )
 
+type AudiobookArgs struct {
+	// the file to convert
+	FileName string
+	// the piper model to use for speech synthesis
+	Model string
+	// the directory to save the output file
+	OutputDirectory string
+	// whether to speak utf-8 characters, also known as diacritics
+	SpeakDiacritics bool
+	// whether to output the audiobook as an mp3 file. if false, use wav
+	OutputAsMp3 bool
+}
+
 // Run the core audiobook creation process. Does not include any CLI parsing. Returns the filepath of the created audiobook.
-func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, outputMp3 bool) (string, error) {
-	if fileName == "" {
+func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
+	if config.FileName == "" {
 		return "", fmt.Errorf("no file was provided")
+	} else if lib.IsUrl(config.FileName) {
+		fileNameInUrl := config.FileName[strings.LastIndex(config.FileName, "/")+1:]
+		downloadedFile, err := lib.DownloadFile(config.FileName, fileNameInUrl, config.OutputDirectory)
+		if err != nil {
+			return "", err
+		}
+		config.FileName = downloadedFile.Name()
 	}
-	if model == "" {
+
+	if config.Model == "" {
 		return "", fmt.Errorf("no model was provided")
 	}
-	if outDir == "" {
+	if config.OutputDirectory == "" {
 		return "", fmt.Errorf("no output directory was provided")
 	}
 
-	rawFile, err := os.Open(fileName)
+	rawFile, err := os.Open(config.FileName)
 	if err != nil {
 		return "", err
 	}
 
-	piper, err := piper.NewPiperClient(model)
+	piper, err := piper.NewPiperClient(config.Model)
 	if err != nil {
 		return "", err
 	}
 
 	var reader io.Reader
-	if !speakDiacritics {
+	if !config.SpeakDiacritics {
 		reader, err = iconv.RemoveDiacritics(rawFile)
 		if err != nil {
 			return "", err
@@ -49,17 +71,17 @@ func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, output
 		reader = rawFile
 	}
 
-	convertedReader, err := ebookconvert.ConvertToText(reader, filepath.Ext(fileName))
+	convertedReader, err := ebookconvert.ConvertToText(reader, filepath.Ext(config.FileName))
 	if err != nil {
 		return "", err
 	}
 
 	var outputName string
-	streamOutput, err := piper.Run(fileName, convertedReader, outDir, outputMp3)
+	streamOutput, outputFilename, err := piper.Run(config.FileName, convertedReader, config.OutputDirectory, config.OutputAsMp3)
 	if err != nil {
 		return "", err
 	}
-	if outputMp3 {
+	if config.OutputAsMp3 {
 		buf := new(bytes.Buffer)
 		written, err := io.Copy(buf, streamOutput.Stdout)
 		if err != nil {
@@ -70,9 +92,9 @@ func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, output
 			return "", fmt.Errorf("piper produced no audio output")
 		}
 
-		fileBase := filepath.Base(fileName)
+		fileBase := filepath.Base(config.FileName)
 		fileNameWithoutExt := strings.TrimSuffix(fileBase, filepath.Ext(fileBase))
-		outputName = filepath.Join(outDir, fileNameWithoutExt) + ".mp3"
+		outputName = filepath.Join(config.OutputDirectory, fileNameWithoutExt) + ".mp3"
 
 		err = ffmpeg.OutputToMp3(bytes.NewReader(buf.Bytes()), outputName)
 		if err != nil {
@@ -80,8 +102,8 @@ func QuickPiperAudiobook(fileName, model, outDir string, speakDiacritics, output
 		}
 		fmt.Printf("Audiobook created at: %s\n", outputName)
 	} else {
-		outputName = filepath.Join(outDir, fileName)
-		fmt.Printf("Audiobook created at: %s\n", outputName)
+		outputName = outputFilename
+		fmt.Printf("Audiobook created at: %s\n", outputFilename)
 	}
 
 	err = beeep.Alert("Audiobook created at "+outputName, "Check the terminal for more info", "")
