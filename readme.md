@@ -45,7 +45,7 @@ Listen to sample output [ here ](./examples/)
 
 
 ```yml
-# An example for `~/.config/QuickPiperAudiobook/config.yml`
+# An example for `~/.config/QuickPiperAudiobook/config.yaml`
 
 # the default output directory to use if the user does not specify --output in the cli args
 output: ~/Audiobooks
