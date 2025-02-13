@@ -39,13 +39,13 @@ Listen to sample output [ here ](./examples/)
 
 ### Configuring
 
-* A configuration file at `~/.config/QuickPiperAudiobook/config.yml` will be automatically created. 
+* A configuration file at `~/.config/QuickPiperAudiobook/config.yaml` will be automatically created. 
 * You can specify a default model and output path so you do not need to specify these args each time.
 * You can use any arbitrary model by putting the associated `.onnx` and `.onnx.json` file for it in `~/.config/QuickPiperAudiobook/`
 
 
 ```yml
-# An example for `~/.config/QuickPiperAudiobook/config.yml`
+# An example for `~/.config/QuickPiperAudiobook/config.yaml`
 
 # the default output directory to use if the user does not specify --output in the cli args
 output: ~/Audiobooks
