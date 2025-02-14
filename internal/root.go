@@ -29,7 +29,7 @@ type AudiobookArgs struct {
 	// the directory to save the output file
 	OutputDirectory string
 	// whether to speak utf-8 characters, also known as diacritics
-	SpeakDiacritics bool
+	SpeakUTF8 bool
 	// whether to output the audiobook as an mp3 file. if false, use wav
 	OutputAsMp3 bool
 	// whether to output the audiobook as an mp3 file with chapters
@@ -79,7 +79,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 			if err != nil {
 				return err
 			}
-			if !config.SpeakDiacritics {
+			if !config.SpeakUTF8 {
 				reader, err := iconv.RemoveDiacritics(convertedReader)
 				if err != nil {
 					return err
@@ -122,7 +122,7 @@ func processWithoutChapters(piper piper.PiperClient, config AudiobookArgs) (stri
 	}
 
 	var reader io.Reader
-	if !config.SpeakDiacritics {
+	if !config.SpeakUTF8 {
 		reader, err = iconv.RemoveDiacritics(rawFile)
 		if err != nil {
 			return "", err

@@ -22,7 +22,7 @@ func TestQuickPiperAudiobook(t *testing.T) {
 			FileName:        file.Name(),
 			Model:           "en_US-lessac-medium.onnx",
 			OutputDirectory: ".",
-			SpeakDiacritics: false,
+			SpeakUTF8:       false,
 			OutputAsMp3:     true,
 			Chapters:        false,
 		}
@@ -47,7 +47,7 @@ func TestQuickPiperAudiobook(t *testing.T) {
 			FileName:        file.Name(),
 			Model:           "en_US-lessac-medium.onnx",
 			OutputDirectory: ".",
-			SpeakDiacritics: false,
+			SpeakUTF8:       false,
 			OutputAsMp3:     false,
 			Chapters:        false,
 		}

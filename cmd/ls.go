@@ -12,9 +12,10 @@ func init() {
 }
 
 var versionCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "List the models that are installed",
-	Long:  "List all the models that are installed in ~/.config/QuickPiperAudiobook",
+	Use:     "ls",
+	Aliases: []string{"list-models"},
+	Short:   "List the models that are installed",
+	Long:    "List all the models that are installed in ~/.config/QuickPiperAudiobook",
 	Run: func(cmd *cobra.Command, args []string) {
 		models, err := piper.FindModels("~/.config/QuickPiperAudiobook")
 		if err != nil {

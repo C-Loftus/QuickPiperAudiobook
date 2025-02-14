@@ -42,7 +42,7 @@ var rootCmd = &cobra.Command{
 			outDir = homeDir + strings.TrimPrefix(outDir, "~")
 		}
 
-		speakDiacritics := config.GetBool("speak-diacritics")
+		speakUTF8 := config.GetBool("speak-utf-8")
 		outputMp3 := config.GetBool("mp3")
 		chapters := config.GetBool("chapters")
 
@@ -50,7 +50,7 @@ var rootCmd = &cobra.Command{
 			FileName:        filePath,
 			Model:           model,
 			OutputDirectory: outDir,
-			SpeakDiacritics: speakDiacritics,
+			SpeakUTF8:       speakUTF8,
 			OutputAsMp3:     outputMp3,
 			Chapters:        chapters,
 		}
@@ -80,11 +80,11 @@ func init() {
 
 	rootCmd.PersistentFlags().StringP("config", "c", "", "config file (default is $HOME/.config/QuickPiperAudiobook/config.yaml)")
 
-	_ = rootCmd.PersistentFlags().Bool("speak-diacritics", false, "Enable UTF-8 speaking mode")
+	_ = rootCmd.PersistentFlags().Bool("speak-utf-8", false, "Enable UTF-8 speaking mode")
 	_ = rootCmd.PersistentFlags().String("model", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
 	_ = rootCmd.PersistentFlags().String("output", ".", "The output directory for the audiobook")
 	_ = rootCmd.PersistentFlags().Bool("mp3", true, "Output the audiobook as an mp3 file (requires ffmpeg)")
-	_ = rootCmd.PersistentFlags().Bool("chapters", false, "Output the audiobook as an mp3 file with chapters (requires ffmpeg and epub input file)")
+	_ = rootCmd.PersistentFlags().Bool("chapters", false, "Output the audiobook as an mp3 file with chapters (requires ffmpeg and .epub input file)")
 	err = config.BindPFlags(rootCmd.PersistentFlags())
 	if err != nil {
 		log.Fatalf("Error binding flags: %v\n", err)
