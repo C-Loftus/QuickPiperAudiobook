@@ -18,19 +18,16 @@ jobs:
         with:
           go-version: '1.22'
 
-      - name: Install Calibre
+      - name: Install Calibre and ffmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y calibre
+          sudo apt-get install -y calibre ffmpeg
 
       - name: Ensure ebook-convert is in PATH
         run: |
           echo "$(dirname $(which ebook-convert)) is in PATH"
           ebook-convert --version  # This will fail if ebook-convert is not installed correctly
 
-      - name: Install ffmpeg
-        run: |
-          sudo apt-get install -y ffmpeg
 
       # run with p 1 to prevent concurrent tests mutating the same file
       # unfortunately we have to do this since ebook-convert requires tmp files and not stdin/stdout

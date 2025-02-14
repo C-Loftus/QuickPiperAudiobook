@@ -42,6 +42,9 @@ func ConcatMp3s(mp3sInOrder []string, outputName string) error {
 	}
 
 	cmdStr := fmt.Sprintf("ffmpeg -i \"concat:%s\" -acodec copy -metadata \"title=Some Song\" %s -map_metadata 0:-1", strings.Join(mp3sInOrder, "|"), outputName)
-	_, err := binarymanagers.Run(cmdStr)
+	res, err := binarymanagers.Run(cmdStr)
+	if err != nil {
+		return fmt.Errorf("%v: %s", err, res)
+	}
 	return err
 }
