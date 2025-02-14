@@ -36,8 +36,8 @@ func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 }
 
 // Concatenate multiple mp3 files into a single mp3
-func ConcatMp3s(mp3s []string, outputName string) error {
-	cmdStr := fmt.Sprintf("ffmpeg -i 'concat:%s' -c copy %s", strings.Join(mp3s, "|"), outputName)
+func ConcatMp3s(mp3sInOrder []string, outputName string) error {
+	cmdStr := fmt.Sprintf("ffmpeg -i \"concat:%s\" -acodec copy -metadata \"title=Some Song\" %s -map_metadata 0:-1", strings.Join(mp3sInOrder, "|"), outputName)
 	_, err := binarymanagers.Run(cmdStr)
 	return err
 }

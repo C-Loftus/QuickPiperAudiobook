@@ -58,6 +58,7 @@ func sanityCheckConfig(config AudiobookArgs) error {
 }
 
 // process a book and split it into chapters
+// returns the filename of the created audiobook
 func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, error) {
 	splitter, err := epub.NewEpubSplitter(config.FileName)
 	if err != nil {
@@ -113,6 +114,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 }
 
 // process a book without splitting it into chapters
+// returns the filename of the created audiobook
 func processWithoutChapters(piper piper.PiperClient, config AudiobookArgs) (string, error) {
 	rawFile, err := os.Open(config.FileName)
 	if err != nil {
