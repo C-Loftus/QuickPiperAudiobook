@@ -38,6 +38,7 @@ func RunPiped(cmd string, pipedInput io.Reader) (PipedOutput, error) {
 	return PipedOutput{Handle: fullCmd, Stdout: stdout, Stderr: stderr}, nil
 }
 
+// Run a shell command and output the combined stdout and stderr
 func Run(cmd string) (string, error) {
 
 	fullCmd := exec.Command("sh", "-c", cmd)

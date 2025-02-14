@@ -1,18 +1,23 @@
 package epub
 
-//Ncx OPS/toc.ncx
+// Ncx OPS/toc.ncx
 type Ncx struct {
-	Points []NavPoint `xml:"navMap>navPoint" json:"points"`
+	NavPoints []NavPoint `xml:"navMap>navPoint" json:"points"`
 }
 
-//NavPoint nav point
 type NavPoint struct {
-	Text    string     `xml:"navLabel>text" json:"text"`
-	Content Content    `xml:"content" json:"content"`
-	Points  []NavPoint `xml:"navPoint" json:"points"`
+	NavLabel  NavLabel `xml:"navLabel" json:"navLabel"`
+	Id        string   `xml:"id,attr" json:"id"`
+	PlayOrder int      `xml:"playOrder,attr" json:"playOrder"`
 }
 
-//Content nav-point content
+// NavPoint nav point
+type NavLabel struct {
+	Text    string  `xml:"navLabel>text" json:"text"`
+	Content Content `xml:"content" json:"content"`
+}
+
+// Content nav-point content
 type Content struct {
 	Src string `xml:"src,attr" json:"src"`
 }

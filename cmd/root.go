@@ -44,6 +44,7 @@ var rootCmd = &cobra.Command{
 
 		speakDiacritics := config.GetBool("speak-diacritics")
 		outputMp3 := config.GetBool("mp3")
+		chapters := config.GetBool("chapters")
 
 		conf := internal.AudiobookArgs{
 			FileName:        filePath,
@@ -51,6 +52,7 @@ var rootCmd = &cobra.Command{
 			OutputDirectory: outDir,
 			SpeakDiacritics: speakDiacritics,
 			OutputAsMp3:     outputMp3,
+			Chapters:        chapters,
 		}
 
 		_, err := internal.QuickPiperAudiobook(conf)
@@ -82,6 +84,7 @@ func init() {
 	_ = rootCmd.PersistentFlags().String("model", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
 	_ = rootCmd.PersistentFlags().String("output", ".", "The output directory for the audiobook")
 	_ = rootCmd.PersistentFlags().Bool("mp3", true, "Output the audiobook as an mp3 file (requires ffmpeg)")
+	_ = rootCmd.PersistentFlags().Bool("chapters", false, "Output the audiobook as an mp3 file with chapters (requires ffmpeg and epub input file)")
 	err = config.BindPFlags(rootCmd.PersistentFlags())
 	if err != nil {
 		log.Fatalf("Error binding flags: %v\n", err)

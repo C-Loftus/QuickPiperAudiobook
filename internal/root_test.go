@@ -24,13 +24,13 @@ func TestQuickPiperAudiobook(t *testing.T) {
 			OutputDirectory: ".",
 			SpeakDiacritics: false,
 			OutputAsMp3:     true,
+			Chapters:        false,
 		}
 
 		outputFilename, err := QuickPiperAudiobook(conf)
+		defer os.Remove(outputFilename)
 		require.NoError(t, err)
 		_, err = os.Stat(outputFilename)
-		require.NoError(t, err)
-		err = os.Remove(outputFilename)
 		require.NoError(t, err)
 		require.True(t, strings.HasSuffix(outputFilename, ".mp3"))
 	})
@@ -49,6 +49,7 @@ func TestQuickPiperAudiobook(t *testing.T) {
 			OutputDirectory: ".",
 			SpeakDiacritics: false,
 			OutputAsMp3:     false,
+			Chapters:        false,
 		}
 
 		outputFilename, err := QuickPiperAudiobook(conf)
