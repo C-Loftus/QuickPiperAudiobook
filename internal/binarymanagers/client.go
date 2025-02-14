@@ -45,7 +45,7 @@ func Run(cmd string) (string, error) {
 
 	outputBytes, err := fullCmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("command failed: %v", err)
+		return string(outputBytes), fmt.Errorf("command failed: %v", err)
 	}
 	return string(outputBytes), nil
 
