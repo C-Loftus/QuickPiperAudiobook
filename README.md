@@ -1,7 +1,11 @@
-# QuickPiperAudiobook
+<center>
+<h1>
+QuickPiperAudiobook
+</h1>
+</center>
 
 <p align="center">
-  <a href="./README.md">English</a> |
+  <b> English </b> |
   <a href="./README_PL.md">Polski</a>
 </p>
 

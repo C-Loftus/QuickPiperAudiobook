@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +17,8 @@ import (
 	"github.com/gen2brain/beeep"
 )
 
+// All the args you can pass to QuickPiperAudiobook
+// These are condensed into a struct for easier testing
 type AudiobookArgs struct {
 	// the file to convert
 	FileName string
@@ -108,7 +109,7 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 
 	err = beeep.Alert("Audiobook created at "+outputName, "Check the terminal for more info", "")
 	if err != nil {
-		log.Default().Printf("Failed sending notification: %v", err)
+		return "", fmt.Errorf("failed sending alert notification after audiobook completion: %v", err)
 	}
 
 	return outputName, nil
