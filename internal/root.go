@@ -109,7 +109,9 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 
 	err = beeep.Alert("Audiobook created at "+outputName, "Check the terminal for more info", "")
 	if err != nil {
-		return "", fmt.Errorf("failed sending alert notification after audiobook completion: %v", err)
+		// although not critical, it's useful to know if the notification failed
+		// sometimes a user may not have notify-send in their path
+		fmt.Printf("failed sending alert notification after audiobook completion: %v", err)
 	}
 
 	return outputName, nil
