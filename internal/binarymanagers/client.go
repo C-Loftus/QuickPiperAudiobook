@@ -6,6 +6,7 @@ import (
 	"os/exec"
 )
 
+// Representation of the output of a shell command
 type PipedOutput struct {
 	Handle *exec.Cmd
 	Stdout io.ReadCloser
