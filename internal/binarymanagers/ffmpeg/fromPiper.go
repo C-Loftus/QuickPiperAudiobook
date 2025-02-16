@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"strings"
 )
 
 // Convert raw PCM audio from piper to MP3 using ffmpeg
@@ -34,18 +33,4 @@ func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 	}
 
 	return nil
-}
-
-// Concatenate multiple mp3 files into a single mp3
-func ConcatMp3s(mp3sInOrder []string, outputName string) error {
-	if _, err := exec.LookPath("ffmpeg"); err != nil {
-		return fmt.Errorf("ffmpeg not found in PATH: %v", err)
-	}
-
-	cmdStr := fmt.Sprintf("ffmpeg -i \"concat:%s\" -acodec copy -metadata \"title=Some Song\" %s -map_metadata 0:-1", strings.Join(mp3sInOrder, "|"), outputName)
-	res, err := binarymanagers.Run(cmdStr)
-	if err != nil {
-		return fmt.Errorf("%v: %s", err, res)
-	}
-	return err
 }

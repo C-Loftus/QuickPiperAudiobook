@@ -3,6 +3,7 @@ package lib
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -48,7 +49,7 @@ func DownloadFile(url, outputName, outputDir string) (*os.File, error) {
 		return nil, fmt.Errorf("error saving file %s: %v", outputPath, err)
 	}
 
-	fmt.Println("Finished downloading successfully.")
+	log.Println("Finished downloading successfully.")
 
 	return file, nil
 }

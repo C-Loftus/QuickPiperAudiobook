@@ -69,3 +69,10 @@ model: "en_US-hfc_female-medium.onnx"
 Piper does not support progress output. Long audiobooks may take a long time to generate since all computation is being done locally. 
 
 This repo has only been tested on Linux.
+
+## Support
+
+Thank you for considering supporting this project.
+
+I accept donations on Github or Paypal. 
+If you would like to sponsor this project or reach out to me regarding collaboration opportunities, you can reach out to me via [email](mailto:github@colton.place).

@@ -30,7 +30,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := args[0]
 		model := config.GetString("model")
-		fmt.Printf("Processing file: %s with model: %s", filePath, model)
+		log.Printf("Processing file: %s with model: %s", filePath, model)
 		outDir := config.GetString("output")
 		speakUTF8 := config.GetBool("speak-utf-8")
 		outputMp3 := config.GetBool("mp3")

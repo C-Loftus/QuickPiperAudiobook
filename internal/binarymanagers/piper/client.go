@@ -3,6 +3,7 @@ package piper
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -20,7 +21,7 @@ type PiperClient struct {
 // Install the piper binary to the specified path
 func installBinary(installationPath string) error {
 
-	fmt.Println("Installing piper...")
+	log.Println("Installing piper...")
 
 	resp, err := http.Get("https://github.com/rhasspy/piper/releases/download/v1.2.0/piper_amd64.tar.gz")
 	if err != nil {
@@ -39,12 +40,12 @@ func installBinary(installationPath string) error {
 	defer file.Close()
 	defer os.Remove(file.Name())
 
-	fmt.Println("Extracting piper...")
+	log.Println("Extracting piper...")
 	if err := lib.Untar(resp.Body, installationPath); err != nil {
 		return fmt.Errorf("failed to extract piper: %v", err)
 	}
 
-	fmt.Println("Piper installed successfully.")
+	log.Println("Piper installed successfully.")
 	return nil
 }
 
@@ -131,7 +132,7 @@ func (piper PiperClient) Run(filename string, inputData io.Reader, outdir string
 		if err != nil {
 			return bin.PipedOutput{}, "", fmt.Errorf("failed to wait for piper: %v", err)
 		}
-		fmt.Println("Piper output saved to: " + filepathAbs)
+		log.Println("Piper output saved to: " + filepathAbs)
 		return bin.PipedOutput{}, filepathAbs, nil
 	}
 }

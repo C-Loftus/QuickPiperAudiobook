@@ -7,6 +7,7 @@ import (
 	"QuickPiperAudiobook/internal/parsers/epub"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -61,8 +62,6 @@ func sanityCheckConfig(config AudiobookArgs) error {
 	return nil
 }
 
-// process a book and split it into chapters
-// returns the filename of the created audiobook
 func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, error) {
 	splitter, err := epub.NewEpubSplitter(config.FileName)
 	if err != nil {
@@ -74,15 +73,24 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 	}
 
 	errorGroup := errgroup.Group{}
-	var mp3Files []string
 	var mu = &sync.Mutex{}
 
-	for _, section := range sections {
+	// Initialize the slice to store mp3 files in the correct order
+	var mp3InOrder = make([]string, len(sections))
+
+	temp_mp3_dir_name, err := os.MkdirTemp("", "piper-ffmpeg-dir-*")
+	defer os.RemoveAll(temp_mp3_dir_name)
+	if err != nil {
+		return "", err
+	}
+
+	for i, section := range sections {
 		errorGroup.Go(func() error {
 			section := section // local variable to capture range variable in local scope
+			i := i             // local variable to capture range variable in local scope
 			convertedReader, err := ebookconvert.ConvertToText(section.Text, filepath.Ext(section.Filename))
 			if err != nil && err != (*ebookconvert.EmptyConversionResultError)(nil) {
-				fmt.Printf("warning! When converting %s to chapters, the internal file %s was empty after being converted. \nSkipping it in the final audiobook. This is ok if it was just images or a titlepage.", config.FileName, section.Filename)
+				log.Printf("Warning: Internal file %s was empty when converting %s to a plaintext chapter\nSkipping it in the final audiobook. This is ok if it was just images or a titlepage.", config.FileName, section.Filename)
 				return nil
 			} else if err != nil {
 				return err
@@ -100,15 +108,18 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 				return err
 			}
 
-			tmp_mp3_name := fmt.Sprintf("piper-output-%s-*.mp3", section.Filename)
-			mu.Lock()
-			mp3Files = append(mp3Files, tmp_mp3_name)
-			mu.Unlock()
+			tmp_mp3_name := filepath.Join(temp_mp3_dir_name, fmt.Sprintf("%d-section-piper-output-%s.mp3", i, section.Filename))
 
 			err = ffmpeg.OutputToMp3(streamOutput.Stdout, tmp_mp3_name)
 			if err != nil {
 				return err
 			}
+
+			// Insert the generated MP3 file inside the list in correct order
+			mu.Lock()
+			mp3InOrder[i] = tmp_mp3_name
+			mu.Unlock()
+
 			return nil
 		})
 	}
@@ -116,14 +127,19 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 		return "", err
 	}
 
-	defer func() {
-		for _, tmp_mp3_name := range mp3Files {
-			os.Remove(tmp_mp3_name)
+	// filter out empty mp3s which signify chapters with no data
+	// i.e. title page or just images
+	var filteredMp3InOrder []string
+	for _, tmp_mp3_name := range mp3InOrder {
+		if tmp_mp3_name == "" {
+			continue
 		}
-	}()
+		filteredMp3InOrder = append(filteredMp3InOrder, tmp_mp3_name)
+	}
 
 	outputName := filepath.Join(config.OutputDirectory, strings.TrimSuffix(filepath.Base(config.FileName), filepath.Ext(config.FileName))) + ".mp3"
-	return outputName, ffmpeg.ConcatMp3s(mp3Files, outputName)
+
+	return outputName, ffmpeg.ConcatMp3s(filteredMp3InOrder, outputName)
 }
 
 // process a book without splitting it into chapters
@@ -211,13 +227,13 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 		}
 	}
 
-	fmt.Printf("Audiobook created at: %s\n", outputName)
+	log.Printf("Audiobook created at: %s\n", outputName)
 
 	err = beeep.Alert("Audiobook created at "+outputName, "Check the terminal for more info", "")
 	if err != nil {
 		// although not critical, it's useful to know if the notification failed
 		// sometimes a user may not have notify-send in their path
-		fmt.Printf("failed sending alert notification after audiobook completion: %v", err)
+		log.Printf("failed sending alert notification after audiobook completion: %v", err)
 	}
 
 	return outputName, nil
