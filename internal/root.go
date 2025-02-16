@@ -111,6 +111,13 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 	if err := errorGroup.Wait(); err != nil {
 		return "", err
 	}
+
+	defer func() {
+		for _, tmp_mp3_name := range mp3Files {
+			os.Remove(tmp_mp3_name)
+		}
+	}()
+
 	outputName := filepath.Join(config.OutputDirectory, strings.TrimSuffix(filepath.Base(config.FileName), filepath.Ext(config.FileName))) + ".mp3"
 	return outputName, ffmpeg.ConcatMp3s(mp3Files, outputName)
 }
