@@ -175,6 +175,11 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 		return "", err
 	}
 
+	config, err := expandHomeDir(config)
+	if err != nil {
+		return "", err
+	}
+
 	if lib.IsUrl(config.FileName) {
 		fileNameInUrl := config.FileName[strings.LastIndex(config.FileName, "/")+1:]
 		downloadedFile, err := lib.DownloadFile(config.FileName, fileNameInUrl, config.OutputDirectory)

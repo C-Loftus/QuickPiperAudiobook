@@ -28,9 +28,6 @@ WORKDIR /app
 # Copy the binary
 COPY --from=build /app/QuickPiperAudiobook .
 
-# Copy any additional files needed at runtime
-COPY --from=build /app/examples /app/examples
-
 # Set the command to run the binary, allowing an argument for the file
 ENTRYPOINT ["./QuickPiperAudiobook"]
 # Allow passing arguments from CLI; mount a file if needed, or point to a remote URL

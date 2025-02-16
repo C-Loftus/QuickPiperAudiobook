@@ -26,4 +26,4 @@ jobs:
 
       - name: Run Docker Container
         run: |
-          docker run quickpiperaudiobook /app/examples/lorem_ipsum.txt
+          docker run -v $(pwd)/examples/lorem_ipsum.txt:/app/examples/lorem_ipsum.txt quickpiperaudiobook

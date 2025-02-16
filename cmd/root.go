@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"QuickPiperAudiobook/internal"
 
@@ -32,16 +31,7 @@ var rootCmd = &cobra.Command{
 		filePath := args[0]
 		model := config.GetString("model")
 		fmt.Printf("Processing file: %s with model: %s", filePath, model)
-
 		outDir := config.GetString("output")
-		if outDir != "" && outDir[0] == '~' {
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				log.Fatal(err)
-			}
-			outDir = homeDir + strings.TrimPrefix(outDir, "~")
-		}
-
 		speakUTF8 := config.GetBool("speak-utf-8")
 		outputMp3 := config.GetBool("mp3")
 		chapters := config.GetBool("chapters")
