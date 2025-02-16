@@ -16,13 +16,15 @@ func TestPiperToMp3(t *testing.T) {
 
 	const testData = "This is some test data for ffmpeg integration tests."
 	const stream = true
-	streamData, _, err := piperClient.Run("/tmp/piper_test.txt", strings.NewReader(testData), "/tmp", stream)
+	streamData, _, err := piperClient.Run("test_file_name.txt", strings.NewReader(testData), ".", stream)
 	require.NoError(t, err)
 
-	const testMp3OutputName = "/tmp/ffmpeg_piper_integrated_test.mp3"
-	err = OutputToMp3(streamData.Stdout, testMp3OutputName)
-	defer os.Remove(testMp3OutputName)
+	file, err := os.CreateTemp("", "ffmpeg_piper_integrated_test_*.mp3")
 	require.NoError(t, err)
-	require.FileExists(t, "/tmp/test.mp3")
+	defer os.Remove(file.Name())
+
+	err = OutputToMp3(streamData.Stdout, file.Name())
+	require.NoError(t, err)
+	require.FileExists(t, file.Name())
 
 }
