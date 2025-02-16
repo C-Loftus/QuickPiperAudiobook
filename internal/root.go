@@ -75,8 +75,12 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 
 	for _, section := range sections {
 		errorGroup.Go(func() error {
-			convertedReader, err := ebookconvert.ConvertToText(section.Text, filepath.Ext(config.FileName))
-			if err != nil {
+			section := section // local variable to capture range variable in local scope
+			convertedReader, err := ebookconvert.ConvertToText(section.Text, filepath.Ext(section.Filename))
+			if err != nil && err != (*ebookconvert.EmptyConversionResultError)(nil) {
+				fmt.Printf("warning! When converting %s to chapters, the internal file %s was empty after being converted. \nSkipping it in the final audiobook. This is ok if it was just images or a titlepage.", config.FileName, section.Filename)
+				return nil
+			} else if err != nil {
 				return err
 			}
 			if !config.SpeakUTF8 {
@@ -87,19 +91,17 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 				convertedReader = reader
 			}
 
-			streamOutput, outputFilename, err := piper.Run(section.Filename, convertedReader, config.OutputDirectory, true)
+			streamOutput, _, err := piper.Run(section.Filename, convertedReader, config.OutputDirectory, true)
 			if err != nil {
 				return err
 			}
-			fileBase := filepath.Base(outputFilename)
-			fileNameWithoutExt := strings.TrimSuffix(fileBase, filepath.Ext(fileBase))
-			outputName := filepath.Join(config.OutputDirectory, fileNameWithoutExt) + ".mp3"
 
+			tmp_mp3_name := fmt.Sprintf("piper-output-%s-*.mp3", section.Filename)
 			mu.Lock()
-			mp3Files = append(mp3Files, outputName)
+			mp3Files = append(mp3Files, tmp_mp3_name)
 			mu.Unlock()
 
-			err = ffmpeg.OutputToMp3(streamOutput.Stdout, outputName)
+			err = ffmpeg.OutputToMp3(streamOutput.Stdout, tmp_mp3_name)
 			if err != nil {
 				return err
 			}
@@ -109,7 +111,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 	if err := errorGroup.Wait(); err != nil {
 		return "", err
 	}
-	outputName := "test.mp3"
+	outputName := filepath.Join(config.OutputDirectory, strings.TrimSuffix(filepath.Base(config.FileName), filepath.Ext(config.FileName))) + ".mp3"
 	return outputName, ffmpeg.ConcatMp3s(mp3Files, outputName)
 }
 

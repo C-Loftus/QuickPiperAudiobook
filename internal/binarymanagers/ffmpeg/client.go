@@ -26,10 +26,11 @@ func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 		return err
 	}
 
-	validateMp3 := exec.Command("ffmpeg", "-v", "error", "-i", outputName, "-f", "null", "-")
+	verifyCmd := fmt.Sprintf("ffmpeg -v error -i %s -f null -", outputName)
+	verificationOutput, err := binarymanagers.Run(verifyCmd)
 
-	if err := validateMp3.Run(); err != nil {
-		return fmt.Errorf("mp3 output validation failed: %v", err)
+	if err != nil {
+		return fmt.Errorf("%v: %s", err, verificationOutput)
 	}
 
 	return nil
