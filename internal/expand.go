@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// Given a config, expand any ~ in the paths to the user's home directory
+// This may be done anyways in the shell but this helps us to test e2e in the
+// same way from within golang
 func expandHomeDir(config AudiobookArgs) (AudiobookArgs, error) {
 	expandPath := func(path string) (string, error) {
 		if strings.HasPrefix(path, "~") {

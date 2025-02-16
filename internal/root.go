@@ -50,6 +50,10 @@ func sanityCheckConfig(config AudiobookArgs) error {
 		return fmt.Errorf("no output directory was provided")
 	}
 
+	if _, err := os.Stat(config.OutputDirectory); os.IsNotExist(err) {
+		return fmt.Errorf("the output directory %s does not exist", config.OutputDirectory)
+	}
+
 	if config.Chapters && filepath.Ext(config.FileName) != ".epub" {
 		return fmt.Errorf("currently only epub files can be split into chapters. Please disable the --chapters flag or convert your file to epub")
 	}
@@ -171,12 +175,12 @@ func processWithoutChapters(piper piper.PiperClient, config AudiobookArgs) (stri
 // Run the core audiobook creation process. Does not include any CLI parsing. Returns the filepath of the created audiobook.
 func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 
-	if err := sanityCheckConfig(config); err != nil {
+	config, err := expandHomeDir(config)
+	if err != nil {
 		return "", err
 	}
 
-	config, err := expandHomeDir(config)
-	if err != nil {
+	if err := sanityCheckConfig(config); err != nil {
 		return "", err
 	}
 

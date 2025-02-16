@@ -87,6 +87,7 @@ func TestQuickPiperAudiobook(t *testing.T) {
 		file, err := os.CreateTemp("", "*-test.txt")
 		require.NoError(t, err)
 		defer file.Close()
+		defer os.Remove(file.Name())
 		_, err = file.WriteString("This is some test data that will be converted to speech.")
 		require.NoError(t, err)
 
@@ -106,6 +107,28 @@ func TestQuickPiperAudiobook(t *testing.T) {
 		err = os.Remove(outputFilename)
 		require.NoError(t, err)
 		require.True(t, strings.HasSuffix(outputFilename, ".wav"))
+	})
+
+	t.Run("failure when output dir is non existent", func(t *testing.T) {
+
+		file, err := os.CreateTemp("", "*-test.txt")
+		require.NoError(t, err)
+		defer file.Close()
+		defer os.Remove(file.Name())
+
+		const nonexistentDir = "nonexistentDir/foo/bar"
+		conf := AudiobookArgs{
+			FileName:        file.Name(),
+			Model:           "en_US-lessac-medium.onnx",
+			OutputDirectory: nonexistentDir,
+			SpeakUTF8:       false,
+			OutputAsMp3:     false,
+			Chapters:        false,
+		}
+
+		_, err = QuickPiperAudiobook(conf)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), nonexistentDir)
 	})
 
 }
