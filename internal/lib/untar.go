@@ -15,12 +15,13 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
+
+	log "github.com/charmbracelet/log"
 )
 
 // Untar reads the gzip-compressed tar file from r and writes it into dir.

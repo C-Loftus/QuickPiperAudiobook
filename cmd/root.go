@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
+
+	log "github.com/charmbracelet/log"
 
 	"QuickPiperAudiobook/internal"
 
@@ -30,7 +31,7 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := args[0]
 		model := config.GetString("model")
-		log.Printf("Processing file: %s with model: %s", filePath, model)
+		log.Infof("Processing file: %s with model: %s", filePath, model)
 		outDir := config.GetString("output")
 		speakUTF8 := config.GetBool("speak-utf-8")
 		outputMp3 := config.GetBool("mp3")

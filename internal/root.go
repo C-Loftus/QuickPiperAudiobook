@@ -6,11 +6,12 @@ import (
 	"QuickPiperAudiobook/internal/lib"
 	"QuickPiperAudiobook/internal/parsers/epub"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	log "github.com/charmbracelet/log"
 
 	ebookconvert "QuickPiperAudiobook/internal/binarymanagers/ebookConvert"
 	"QuickPiperAudiobook/internal/binarymanagers/iconv"
@@ -89,7 +90,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 			i := i             // local variable to capture range variable in local scope
 			convertedReader, err := ebookconvert.ConvertToText(section.Text, filepath.Ext(section.Filename))
 			if err != nil && err != (*ebookconvert.EmptyConversionResultError)(nil) {
-				log.Printf("Warning: Internal file %s was empty when converting %s to a plaintext chapter\nSkipping it in the final audiobook. This is ok if it was just images or a titlepage.", section.Filename, config.FileName)
+				log.Warnf("Warning: Internal file %s was empty when converting %s to a plaintext chapter. Skipping it in the final audiobook. This is ok if it was just images or a titlepage.", section.Filename, config.FileName)
 				return nil
 			} else if err != nil {
 				return err
@@ -224,7 +225,7 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 		}
 	}
 
-	log.Printf("Audiobook created at: %s\n", outputName)
+	log.Infof("Audiobook created at: %s", outputName)
 
 	err = beeep.Alert("Audiobook created at "+outputName, "Check the terminal for more info", "")
 	if err != nil {

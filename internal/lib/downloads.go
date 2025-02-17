@@ -3,11 +3,12 @@ package lib
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	log "github.com/charmbracelet/log"
 )
 
 // Return true if the string is a URL
@@ -50,7 +51,7 @@ func DownloadFile(url, outputName, outputDir string) (*os.File, error) {
 		return nil, fmt.Errorf("error saving file %s: %v", outputPath, err)
 	}
 
-	log.Println("Finished downloading successfully.")
+	log.Info("Finished downloading successfully.")
 
 	return file, nil
 }
