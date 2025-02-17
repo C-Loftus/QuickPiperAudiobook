@@ -17,13 +17,13 @@ func TestRunBinary(t *testing.T) {
 func FuzzRunPipedBinary(f *testing.F) {
 	// Test echo to cat
 	f.Fuzz(func(t *testing.T, message string) {
-		echoCmd, err := RunPiped("echo "+message, nil)
+		echoCmd, err := RunPiped("echo", []string{message}, nil)
 		require.NoError(t, err)
 
-		catCmd, err := RunPiped("cat", echoCmd.Stdout)
+		catCmd, err := RunPiped("cat", []string{""}, echoCmd.Stdout)
 		require.NoError(t, err)
 
-		catCmd2, err := RunPiped("cat", catCmd.Stdout)
+		catCmd2, err := RunPiped("cat", []string{""}, catCmd.Stdout)
 		require.NoError(t, err)
 
 		// Properly read from the result.Stdout before calling Wait

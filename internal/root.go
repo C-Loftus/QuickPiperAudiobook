@@ -69,6 +69,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 	if err != nil {
 		return "", err
 	}
+	defer splitter.Close()
 	sections, err := splitter.SplitBySection()
 	if err != nil {
 		return "", err

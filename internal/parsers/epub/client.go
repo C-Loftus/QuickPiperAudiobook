@@ -84,3 +84,7 @@ func (p *EpubSplitter) GetSectionNamesViaToc() ([]string, error) {
 
 	return sections, nil
 }
+
+func (p *EpubSplitter) Close() {
+	p.book.Close()
+}

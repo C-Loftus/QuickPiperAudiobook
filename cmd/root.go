@@ -74,7 +74,7 @@ func init() {
 	_ = rootCmd.PersistentFlags().Bool("speak-utf-8", false, "Enable UTF-8 speaking mode for non-English models that support reading UTF-8 characters")
 	_ = rootCmd.PersistentFlags().String("model", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
 	_ = rootCmd.PersistentFlags().String("output", ".", "The output directory for the audiobook")
-	_ = rootCmd.PersistentFlags().Bool("mp3", true, "Output the audiobook as an mp3 file (requires ffmpeg)")
+	_ = rootCmd.PersistentFlags().Bool("mp3", false, "Output the audiobook as an mp3 file (requires ffmpeg)")
 	_ = rootCmd.PersistentFlags().Bool("chapters", false, "Output the audiobook as an mp3 file and try to split it into chapters (requires ffmpeg and epub input file)")
 	err = config.BindPFlags(rootCmd.PersistentFlags())
 	if err != nil {

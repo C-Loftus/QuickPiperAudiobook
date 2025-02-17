@@ -15,8 +15,8 @@ func RemoveDiacritics(input io.Reader) (io.Reader, error) {
 		return nil, fmt.Errorf("iconv not found in PATH: %v", err)
 	}
 
-	command := "iconv -f UTF-8 -t ASCII//TRANSLIT//IGNORE"
-	output, err := binarymanagers.RunPiped(command, input)
+	command := []string{"-f", "UTF-8", "-t", "ASCII//TRANSLIT//IGNORE"}
+	output, err := binarymanagers.RunPiped("iconv", command, input)
 	if err != nil {
 		return nil, err
 	}

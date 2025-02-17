@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+
+	"github.com/charmbracelet/log"
 )
 
 // Representation of the output of a shell command
@@ -13,12 +15,12 @@ type PipedOutput struct {
 	Stderr io.ReadCloser
 }
 
-func RunPiped(cmd string, pipedInput io.Reader) (PipedOutput, error) {
+func RunPiped(cmdName string, args []string, pipedInput io.Reader) (PipedOutput, error) {
 	if pipedInput == nil {
 		return PipedOutput{}, fmt.Errorf("piped input was nil")
 	}
 
-	fullCmd := exec.Command("sh", "-c", cmd)
+	fullCmd := exec.Command(cmdName, args...)
 
 	stdout, err := fullCmd.StdoutPipe()
 	if err != nil {
@@ -33,7 +35,7 @@ func RunPiped(cmd string, pipedInput io.Reader) (PipedOutput, error) {
 	fullCmd.Stdin = pipedInput
 
 	if err := fullCmd.Start(); err != nil {
-		return PipedOutput{}, fmt.Errorf("command failed: %v", err)
+		return PipedOutput{}, fmt.Errorf("command failed when starting: %v", err)
 	}
 
 	return PipedOutput{Handle: fullCmd, Stdout: stdout, Stderr: stderr}, nil
@@ -46,6 +48,7 @@ func Run(cmd string) (string, error) {
 
 	outputBytes, err := fullCmd.CombinedOutput()
 	if err != nil {
+		log.Errorf("Command failed: %v with output: %s", err, string(outputBytes))
 		return string(outputBytes), fmt.Errorf("command failed: %v", err)
 	}
 	return string(outputBytes), nil

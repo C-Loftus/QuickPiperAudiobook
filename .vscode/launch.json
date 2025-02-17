@@ -19,7 +19,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
-            "args": ["internal/testdata/titlepage_and_2_chapters.epub"],
+            "args": ["dec.epub", "dec.epub", "--mp3", "--chapters"],
         },
     ]
 }

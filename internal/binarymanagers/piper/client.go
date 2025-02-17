@@ -102,26 +102,25 @@ func (piper PiperClient) Run(filename string, inputData io.Reader, outdir string
 		return bin.PipedOutput{}, "", fmt.Errorf("output directory specified for piper could not be created: %v", err)
 	}
 
-	outputName := filepath.Join(outdir, strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))) + ".wav"
-
-	filepathAbs, err := filepath.Abs(outputName)
-	if err != nil {
-		return bin.PipedOutput{}, "", fmt.Errorf("failed to get absolute path: %v", err)
-	}
-
 	modelAbs, err := filepath.Abs(piper.model)
 	if err != nil {
 		return bin.PipedOutput{}, "", fmt.Errorf("failed to get absolute path: %v", err)
 	}
 
-	piperCmd := piper.binary + " -m " + modelAbs
+	var filepathAbs string
+	piperArgs := []string{"-m", modelAbs}
 	if streamOutput {
-		piperCmd += " --output_raw"
+		piperArgs = append(piperArgs, "--output_raw")
 	} else {
-		piperCmd += " --output_file " + filepathAbs
+		outputName := filepath.Join(outdir, strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))) + ".wav"
+		filepathAbs, err = filepath.Abs(outputName)
+		if err != nil {
+			return bin.PipedOutput{}, "", fmt.Errorf("failed to get absolute path: %v", err)
+		}
+		piperArgs = append(piperArgs, "--output_file", filepathAbs)
 	}
 
-	output, err := bin.RunPiped(piperCmd, inputData)
+	output, err := bin.RunPiped(piper.binary, piperArgs, inputData)
 	if err != nil {
 		return bin.PipedOutput{}, "", fmt.Errorf("failed to run piper: %v", err)
 	}

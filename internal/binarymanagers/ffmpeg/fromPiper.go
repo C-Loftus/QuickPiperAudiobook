@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+
+	"github.com/charmbracelet/log"
 )
 
 // Convert raw PCM audio from piper to MP3 using ffmpeg
@@ -13,23 +15,28 @@ func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 		return fmt.Errorf("ffmpeg not found in PATH: %v", err)
 	}
 
-	cmdStr := fmt.Sprintf("ffmpeg -f s16le -ar 22050 -ac 1 -i pipe:0 -acodec libmp3lame -b:a 128k -y %s", outputName)
+	args := []string{"-f", "s16le", "-ar", "22050", "-ac", "1", "-i", "pipe:0",
+		"-acodec", "libmp3lame", "-b:a", "128k", "-y", outputName}
 
-	output, err := binarymanagers.RunPiped(cmdStr, piperRawAudio)
+	output, err := binarymanagers.RunPiped("ffmpeg", args, piperRawAudio)
 	if err != nil {
 		return err
 	}
 
+	log.Debugf("Running ffmpeg to create %s", outputName)
+
+	// Read stderr before waiting
+	stderrBytes, _ := io.ReadAll(output.Stderr)
 	err = output.Handle.Wait()
 	if err != nil {
-		return err
+		return fmt.Errorf("ffmpeg failed: %v\nstderr: %s", err, string(stderrBytes))
 	}
 
-	verifyCmd := fmt.Sprintf("ffmpeg -v error -i %s -f null -", outputName)
-	verificationOutput, err := binarymanagers.Run(verifyCmd)
-
+	// Verify output
+	verifyCmd := exec.Command("ffmpeg", "-v", "error", "-i", outputName, "-f", "null", "-")
+	verifyOutput, err := verifyCmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("%v: %s", err, verificationOutput)
+		return fmt.Errorf("ffmpeg failed to verify output: %v\nstderr: %s", err, string(verifyOutput))
 	}
 
 	return nil
