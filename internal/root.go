@@ -43,7 +43,7 @@ type AudiobookArgs struct {
 }
 
 // make sure the config is not obviously invalid before we try to use it
-func sanityCheckConfig(config AudiobookArgs) error {
+func sanityCheckConfig(config *AudiobookArgs) error {
 	if config.FileName == "" {
 		return fmt.Errorf("no file was provided")
 	}
@@ -61,7 +61,8 @@ func sanityCheckConfig(config AudiobookArgs) error {
 	}
 
 	if config.Chapters && filepath.Ext(config.FileName) != ".epub" {
-		return fmt.Errorf("currently only epub files can be split into chapters. Please disable the --chapters flag or convert your file to epub")
+		log.Warnf("currently only epub files can be split into chapters. Ignore chapter splitting for %s", config.FileName)
+		config.Chapters = false
 	}
 
 	return nil
@@ -137,7 +138,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 
 			tmpMP3 := filepath.Join(
 				tempDir,
-				fmt.Sprintf("%02d-section-piper-output-%s.mp3", i, section.Filename),
+				fmt.Sprintf("%04d-section-piper-output-%s.mp3", i, section.Filename),
 			)
 			err = ffmpeg.OutputToMp3(streamOutput.Stdout, tmpMP3)
 			if err != nil {
@@ -233,7 +234,7 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 		return "", err
 	}
 
-	if err := sanityCheckConfig(config); err != nil {
+	if err := sanityCheckConfig(&config); err != nil {
 		return "", err
 	}
 

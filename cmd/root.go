@@ -37,6 +37,11 @@ var rootCmd = &cobra.Command{
 		outputMp3 := config.GetBool("mp3")
 		chapters := config.GetBool("chapters")
 		threads := config.GetInt("threads")
+		verbose := config.GetBool("verbose")
+
+		if verbose {
+			log.SetLevel(log.DebugLevel)
+		}
 
 		conf := internal.AudiobookArgs{
 			FileName:        filePath,
@@ -65,7 +70,7 @@ func init() {
 
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Info("Config file not found, using CLI flags and defaults only")
+			log.Debug("Config file not found, using CLI flags and defaults only")
 		} else {
 			log.Fatalf("Error reading config file: %v\n", err)
 		}
@@ -79,6 +84,7 @@ func init() {
 	_ = rootCmd.PersistentFlags().Bool("mp3", false, "Output the audiobook as an mp3 file (requires ffmpeg)")
 	_ = rootCmd.PersistentFlags().Bool("chapters", false, "Output the audiobook as an mp3 file and try to split it into chapters (requires ffmpeg and epub input file)")
 	_ = rootCmd.PersistentFlags().Int("threads", 4, "The number of threads to use (only applied if chapters is true)")
+	_ = rootCmd.PersistentFlags().Bool("verbose", false, "Enable verbose logging for debugging")
 	err = config.BindPFlags(rootCmd.PersistentFlags())
 	if err != nil {
 		log.Fatalf("Error binding flags: %v\n", err)

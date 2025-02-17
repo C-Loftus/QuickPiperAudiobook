@@ -6,3 +6,5 @@ output: ~/Audiobooks
 model: "en_US-hfc_female-medium.onnx"
 # output the audiobook as an mp3 file (requires ffmpeg in your PATH)
 mp3: false
+# generate chapter metadata when outputting mp3s (requires an epub input and ffmpeg in your PATH)
+chapters: false
