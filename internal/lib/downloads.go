@@ -26,7 +26,7 @@ func DownloadFile(url, outputName, outputDir string) (*os.File, error) {
 
 	outputPath := outputDir + outputName
 
-	log.Print("Downloading " + outputName + " to " + outputPath)
+	log.Info("Downloading " + outputName + " to " + outputPath)
 
 	file, err := os.Create(outputPath)
 	if err != nil {

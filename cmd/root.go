@@ -63,7 +63,7 @@ func init() {
 
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found; continue with defaults
+			log.Info("Config file not found, using CLI flags and defaults only")
 		} else {
 			log.Fatalf("Error reading config file: %v\n", err)
 		}

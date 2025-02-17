@@ -32,9 +32,9 @@ func Untar(r io.Reader, dir string) (err error) {
 	defer func() {
 		td := time.Since(t0)
 		if err == nil {
-			log.Printf("extracted tarball into %s: %d files, %d dirs (%v)", dir, nFiles, len(madeDir), td)
+			log.Debugf("extracted tarball into %s: %d files, %d dirs (%v)", dir, nFiles, len(madeDir), td)
 		} else {
-			log.Printf("error extracting tarball into %s after %d files, %d dirs, %v: %v", dir, nFiles, len(madeDir), td, err)
+			log.Errorf("error extracting tarball into %s after %d files, %d dirs, %v: %v", dir, nFiles, len(madeDir), td, err)
 		}
 	}()
 	zr, err := gzip.NewReader(r)
@@ -49,7 +49,7 @@ func Untar(r io.Reader, dir string) (err error) {
 			break
 		}
 		if err != nil {
-			log.Printf("tar reading error: %v", err)
+			log.Errorf("tar reading error: %v", err)
 			return fmt.Errorf("tar error: %v", err)
 		}
 		if !validRelPath(f.Name) {

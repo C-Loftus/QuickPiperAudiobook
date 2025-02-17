@@ -10,7 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/briandowns/spinner"
 	log "github.com/charmbracelet/log"
 
 	ebookconvert "QuickPiperAudiobook/internal/binarymanagers/ebookConvert"
@@ -213,6 +215,9 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 	}
 
 	var outputName string
+	log.Info("Converting files and generating audiobook. This may take a while...")
+	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
+	s.Start()
 	if config.Chapters {
 		outputName, err = processChapters(*piper, config)
 		if err != nil {
@@ -224,6 +229,7 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 			return "", err
 		}
 	}
+	s.Stop()
 
 	log.Infof("Audiobook created at: %s", outputName)
 
@@ -231,7 +237,7 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 	if err != nil {
 		// although not critical, it's useful to know if the notification failed
 		// sometimes a user may not have notify-send in their path
-		log.Printf("failed sending alert notification after audiobook completion: %v", err)
+		log.Warnf("failed sending alert notification after audiobook completion: %v", err)
 	}
 
 	return outputName, nil
