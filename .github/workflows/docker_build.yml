@@ -24,6 +24,10 @@ jobs:
         run: |
           docker build -t quickpiperaudiobook .
 
-      - name: Run Docker Container
+      - name: Run Docker Container and generate wav
         run: |
           docker run -v $(pwd)/examples/lorem_ipsum.txt:/app/examples/lorem_ipsum.txt quickpiperaudiobook /app/examples/lorem_ipsum.txt
+
+      - name: Run Docker Container and generate mp3
+        run: |
+          docker run -v $(pwd)/examples/lorem_ipsum.txt:/app/examples/lorem_ipsum.txt quickpiperaudiobook /app/examples/lorem_ipsum.txt --mp3

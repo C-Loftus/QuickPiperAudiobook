@@ -10,13 +10,14 @@ type quickPiperAudiobookContainer struct {
 	testcontainers.Container
 }
 
-func startContainer(dockerfile string, command []string) (*quickPiperAudiobookContainer, error) {
+func makeContainer(dockerfile string, command []string, files []testcontainers.ContainerFile) (*quickPiperAudiobookContainer, error) {
 	req := testcontainers.ContainerRequest{
 		FromDockerfile: testcontainers.FromDockerfile{
-			Context:    ".",
+			Context:    "../",
 			Dockerfile: dockerfile,
 		},
-		Cmd: command,
+		Files: files,
+		Cmd:   command,
 	}
 	container, err := testcontainers.GenericContainer(context.Background(), testcontainers.GenericContainerRequest{
 		ContainerRequest: req,
