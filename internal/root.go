@@ -5,6 +5,7 @@ import (
 	"QuickPiperAudiobook/internal/binarymanagers/piper"
 	"QuickPiperAudiobook/internal/lib"
 	"QuickPiperAudiobook/internal/parsers/epub"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -37,6 +38,8 @@ type AudiobookArgs struct {
 	OutputAsMp3 bool
 	// whether to output the audiobook as an mp3 file with chapters
 	Chapters bool
+	// the number of threads to use when doing concurrent conversions
+	Threads int
 }
 
 // make sure the config is not obviously invalid before we try to use it
@@ -70,34 +73,54 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 		return "", err
 	}
 	defer splitter.Close()
+
 	sections, err := splitter.SplitBySection()
 	if err != nil {
 		return "", err
 	}
 
 	errorGroup := errgroup.Group{}
-	var mu = &sync.Mutex{}
+
+	if config.Threads == 0 {
+		log.Warn("threads is set to 0 so will use all available cores; this may cause CPU overload")
+	} else {
+		errorGroup.SetLimit(config.Threads)
+	}
+
+	var mu sync.Mutex
 
 	// Initialize the slice to store mp3 files in the correct order
-	var mp3InOrder = make([]string, len(sections))
+	mp3InOrder := make([]string, len(sections))
 
-	temp_mp3_dir_name, err := os.MkdirTemp("", "piper-ffmpeg-dir-*")
-	defer os.RemoveAll(temp_mp3_dir_name)
+	tempDir, err := os.MkdirTemp("", "piper-ffmpeg-dir-*")
 	if err != nil {
 		return "", err
 	}
+	// Clean up temp dir at the end
+	defer os.RemoveAll(tempDir)
 
 	for i, section := range sections {
+		// capture the loop variables in local scope for the goroutine
+		i, section := i, section
+
 		errorGroup.Go(func() error {
-			section := section // local variable to capture range variable in local scope
-			i := i             // local variable to capture range variable in local scope
-			convertedReader, err := ebookconvert.ConvertToText(section.Text, filepath.Ext(section.Filename))
-			if err != nil && err != (*ebookconvert.EmptyConversionResultError)(nil) {
-				log.Warnf("Internal file %s was empty when converting %s to a plaintext chapter. Skipping it in the final audiobook. This is ok if it was just images or a cover page.", section.Filename, config.FileName)
-				return nil
-			} else if err != nil {
+			section.Filename = strings.ReplaceAll(section.Filename, "/", "_")
+
+			// Convert to plaintext
+			convertedReader, err := ebookconvert.ConvertToText(
+				section.Text, filepath.Ext(section.Filename),
+			)
+			if err != nil {
+				var emptyErr *ebookconvert.EmptyConversionResultError
+				if errors.As(err, &emptyErr) {
+					log.Warnf("File %s was empty (images or cover). Skipping this chapter.",
+						section.Filename)
+					return nil // skip
+				}
+				// Otherwise, return the real error so we don't produce a bad MP3
 				return err
 			}
+
 			if !config.SpeakUTF8 {
 				reader, err := iconv.RemoveDiacritics(convertedReader)
 				if err != nil {
@@ -106,43 +129,56 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 				convertedReader = reader
 			}
 
+			// Run piper in "streamOutput" mode
 			streamOutput, _, err := piper.Run(section.Filename, convertedReader, config.OutputDirectory, true)
 			if err != nil {
 				return err
 			}
 
-			tmp_mp3_name := filepath.Join(temp_mp3_dir_name, fmt.Sprintf("%d-section-piper-output-%s.mp3", i, section.Filename))
-
-			err = ffmpeg.OutputToMp3(streamOutput.Stdout, tmp_mp3_name)
+			tmpMP3 := filepath.Join(
+				tempDir,
+				fmt.Sprintf("%02d-section-piper-output-%s.mp3", i, section.Filename),
+			)
+			err = ffmpeg.OutputToMp3(streamOutput.Stdout, tmpMP3)
 			if err != nil {
 				return err
 			}
 
-			// Insert the generated MP3 file inside the list in correct order
+			// Place the MP3 path into our slice in the correct index
 			mu.Lock()
-			mp3InOrder[i] = tmp_mp3_name
+			mp3InOrder[i] = tmpMP3
 			mu.Unlock()
 
 			return nil
 		})
 	}
+
+	// Wait for all goroutines to finish
 	if err := errorGroup.Wait(); err != nil {
 		return "", err
 	}
 
-	// filter out empty mp3s which signify chapters with no data
-	// i.e. title page or just images
-	var filteredMp3InOrder []string
-	for _, tmp_mp3_name := range mp3InOrder {
-		if tmp_mp3_name == "" {
-			continue
+	// Filter out empty or skipped chapters
+	var filteredMp3s []string
+	for _, name := range mp3InOrder {
+		if name != "" {
+			filteredMp3s = append(filteredMp3s, name)
 		}
-		filteredMp3InOrder = append(filteredMp3InOrder, tmp_mp3_name)
 	}
 
-	outputName := filepath.Join(config.OutputDirectory, strings.TrimSuffix(filepath.Base(config.FileName), filepath.Ext(config.FileName))) + ".mp3"
+	// Final output
+	outputName := filepath.Join(
+		config.OutputDirectory,
+		strings.TrimSuffix(filepath.Base(config.FileName), filepath.Ext(config.FileName))+".mp3",
+	)
 
-	return outputName, ffmpeg.ConcatMp3s(filteredMp3InOrder, outputName)
+	// Concatenate all final MP3s
+	err = ffmpeg.ConcatMp3s(filteredMp3s, outputName)
+	if err != nil {
+		return "", err
+	}
+
+	return outputName, nil
 }
 
 // process a book without splitting it into chapters

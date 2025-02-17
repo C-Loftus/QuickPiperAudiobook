@@ -1,0 +1,32 @@
+# This Dockerfile builds a binary for use with the QuickPiperAudiobook command.
+# It can be used for testing or for architectures that don't have a Piper build.
+# docker build -f Dockerfile.arch -t quickpiperaudiobook .
+# docker run quickpiperaudiobook /app/examples/lorem_ipsum.txt
+
+FROM golang:1.22 AS build
+
+WORKDIR /app
+
+COPY . .
+
+# Install Go dependencies and build the binary
+RUN go mod tidy && \
+    go build -o QuickPiperAudiobook .
+
+FROM archlinux:latest
+
+# Install runtime dependencies
+RUN pacman -Sy --noconfirm \
+    # needed for ebook-convert
+    calibre \
+    ffmpeg \
+    && pacman -Scc --noconfirm
+
+WORKDIR /app
+
+# Copy the binary
+COPY --from=build /app/QuickPiperAudiobook .
+
+# Set the command to run the binary, allowing an argument for the file
+ENTRYPOINT ["./QuickPiperAudiobook"]
+CMD []

@@ -11,12 +11,8 @@ type EmptyConversionResultError struct {
 	Filename string
 }
 
-func (e EmptyConversionResultError) Error() string {
+func (e *EmptyConversionResultError) Error() string {
 	return fmt.Sprintf("ebook-convert output is empty: %s", e.Filename)
-}
-
-func (e *EmptyConversionResultError) Unwrap() error {
-	return nil // This is a terminal error (it has no underlying cause)
 }
 
 // Convert input data to text using the ebook-convert command
@@ -60,7 +56,7 @@ func ConvertToText(input io.Reader, fileExt string) (io.Reader, error) {
 	if fileInfo, err := tmpOutputFile.Stat(); err != nil {
 		return nil, fmt.Errorf("failed to stat temporary output file: %v", err)
 	} else if fileInfo.Size() == 0 {
-		return nil, EmptyConversionResultError{Filename: tmpOutputFile.Name()}
+		return nil, &EmptyConversionResultError{Filename: tmpOutputFile.Name()}
 	}
 
 	// Return the output file as a reader

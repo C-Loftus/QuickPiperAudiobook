@@ -16,6 +16,10 @@ func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 		return fmt.Errorf("ffmpeg not found in PATH: %v", err)
 	}
 
+	if piperRawAudio == nil {
+		return fmt.Errorf("nil was passed to ffmpeg mp3 generation")
+	}
+
 	args := []string{"-f", "s16le", "-ar", "22050", "-ac", "1", "-i", "pipe:0",
 		"-acodec", "libmp3lame", "-b:a", "128k", "-y", outputName}
 

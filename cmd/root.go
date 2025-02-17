@@ -36,6 +36,7 @@ var rootCmd = &cobra.Command{
 		speakUTF8 := config.GetBool("speak-utf-8")
 		outputMp3 := config.GetBool("mp3")
 		chapters := config.GetBool("chapters")
+		threads := config.GetInt("threads")
 
 		conf := internal.AudiobookArgs{
 			FileName:        filePath,
@@ -44,6 +45,7 @@ var rootCmd = &cobra.Command{
 			SpeakUTF8:       speakUTF8,
 			OutputAsMp3:     outputMp3,
 			Chapters:        chapters,
+			Threads:         threads,
 		}
 
 		_, err := internal.QuickPiperAudiobook(conf)
@@ -76,6 +78,7 @@ func init() {
 	_ = rootCmd.PersistentFlags().String("output", ".", "The output directory for the audiobook")
 	_ = rootCmd.PersistentFlags().Bool("mp3", false, "Output the audiobook as an mp3 file (requires ffmpeg)")
 	_ = rootCmd.PersistentFlags().Bool("chapters", false, "Output the audiobook as an mp3 file and try to split it into chapters (requires ffmpeg and epub input file)")
+	_ = rootCmd.PersistentFlags().Int("threads", 4, "The number of threads to use (only applied if chapters is true)")
 	err = config.BindPFlags(rootCmd.PersistentFlags())
 	if err != nil {
 		log.Fatalf("Error binding flags: %v\n", err)

@@ -1,0 +1,8 @@
+# An example for `~/.config/QuickPiperAudiobook/config.yml`
+
+# the default output directory to use if the user does not specify --output in the cli args
+output: ~/Audiobooks
+# the default model to use if the user does not specify --model in the cli args
+model: "en_US-hfc_female-medium.onnx"
+# output the audiobook as an mp3 file (requires ffmpeg in your PATH)
+mp3: false
