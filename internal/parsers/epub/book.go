@@ -100,5 +100,5 @@ func (p *Book) openInternal(n string) (io.ReadCloser, error) {
 			return f.Open()
 		}
 	}
-	return nil, fmt.Errorf("file %s not exist", n)
+	return nil, fmt.Errorf("file %s does not exist", n)
 }

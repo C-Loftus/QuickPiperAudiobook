@@ -4,6 +4,7 @@ import (
 	"QuickPiperAudiobook/internal/binarymanagers"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 
 	"github.com/charmbracelet/log"
@@ -30,6 +31,15 @@ func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 	err = output.Handle.Wait()
 	if err != nil {
 		return fmt.Errorf("ffmpeg failed: %v\nstderr: %s", err, string(stderrBytes))
+	}
+
+	// Ensure file was written before verification
+	fileInfo, err := os.Stat(outputName)
+	if err != nil {
+		return fmt.Errorf("output file missing: %v", err)
+	}
+	if fileInfo.Size() == 0 {
+		return fmt.Errorf("output file is empty: %s", outputName)
 	}
 
 	// Verify output

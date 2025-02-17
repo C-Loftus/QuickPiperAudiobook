@@ -93,7 +93,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 			i := i             // local variable to capture range variable in local scope
 			convertedReader, err := ebookconvert.ConvertToText(section.Text, filepath.Ext(section.Filename))
 			if err != nil && err != (*ebookconvert.EmptyConversionResultError)(nil) {
-				log.Warnf("Warning: Internal file %s was empty when converting %s to a plaintext chapter. Skipping it in the final audiobook. This is ok if it was just images or a titlepage.", section.Filename, config.FileName)
+				log.Warnf("Internal file %s was empty when converting %s to a plaintext chapter. Skipping it in the final audiobook. This is ok if it was just images or a cover page.", section.Filename, config.FileName)
 				return nil
 			} else if err != nil {
 				return err

@@ -42,7 +42,7 @@ func TestParseEnglish(t *testing.T) {
 
 }
 
-func TestParse漢語(t *testing.T) {
+func TestParseChinese(t *testing.T) {
 
 	chineseFiles := []string{"呻吟語_epub3.epub", "呻吟語_epub2.epub"}
 
