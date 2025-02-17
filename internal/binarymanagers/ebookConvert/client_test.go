@@ -16,7 +16,7 @@ func TestConvertToText(t *testing.T) {
 	defer inputFile.Close()
 
 	// Call the ConvertToText function
-	outputReader, err := ConvertToText(inputFile, "epub")
+	outputReader, err := ConvertToText(inputFile, ".epub")
 	require.NoError(t, err, "ConvertToText returned an error")
 
 	// Read the output to verify its content

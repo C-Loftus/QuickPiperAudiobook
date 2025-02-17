@@ -7,7 +7,8 @@ import (
 	"path/filepath"
 )
 
-// ConcatMp3s concatenates MP3 files with proper chapter metadata.
+// Concatenates MP3 files and saves the output as an MP3 file
+// with proper chapter metadata markers
 func ConcatMp3s(mp3sInOrder []string, outputName string) error {
 	if _, err := exec.LookPath("ffmpeg"); err != nil {
 		return fmt.Errorf("ffmpeg not found in PATH: %v", err)
@@ -71,7 +72,7 @@ func ConcatMp3s(mp3sInOrder []string, outputName string) error {
 	return nil
 }
 
-// getMp3Duration retrieves the duration of an MP3 file in milliseconds using ffprobe.
+// Retrieves the duration of an MP3 file in milliseconds using ffprobe.
 func getMp3Duration(mp3File string) (int64, error) {
 	// make sure that the file exists
 	if _, err := os.Stat(mp3File); os.IsNotExist(err) {
@@ -93,7 +94,7 @@ func getMp3Duration(mp3File string) (int64, error) {
 	return int64(durationSec * 1000), nil // Convert to milliseconds
 }
 
-// generateMetadataFile writes an ffmetadata file with chapters based on MP3 durations.
+// Write an ffmetadata file with chapters based on MP3 durations.
 func generateMetadataFile(metadataFile *os.File, durations []int64) error {
 	_, err := metadataFile.WriteString(";FFMETADATA1\n")
 	if err != nil {

@@ -1,1 +1,0 @@
-This file contains end-to-end tests for the entire CLI. They are 

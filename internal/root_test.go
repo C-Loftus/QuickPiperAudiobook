@@ -36,6 +36,26 @@ func TestQuickPiperAudiobook(t *testing.T) {
 		require.True(t, strings.HasSuffix(outputFilename, ".mp3"))
 	})
 
+	t.Run("end to end with epub and wav", func(t *testing.T) {
+
+		conf := AudiobookArgs{
+			FileName:        filepath.Join("testdata", "titlepage_and_2_chapters.epub"),
+			Model:           "en_US-lessac-medium.onnx",
+			OutputDirectory: ".",
+			SpeakUTF8:       false,
+			OutputAsMp3:     false,
+			Chapters:        false,
+		}
+
+		outputFilename, err := QuickPiperAudiobook(conf)
+		require.NoError(t, err)
+		_, err = os.Stat(outputFilename)
+		require.NoError(t, err)
+		err = os.Remove(outputFilename)
+		require.NoError(t, err)
+		require.True(t, strings.HasSuffix(outputFilename, ".wav"))
+	})
+
 	t.Run("end to end; epub has one chapter and title page that is skipped", func(t *testing.T) {
 
 		file, err := os.Open(filepath.Join("testdata", "titlepage_and_1_chapter.epub"))

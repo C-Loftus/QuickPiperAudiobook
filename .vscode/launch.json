@@ -19,7 +19,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
-            "args": ["internal/binarymanagers/ebookConvert/testdata/test.txt"],
+            "args": ["test/phaedo_epub2.epub"],
         },
     ]
 }

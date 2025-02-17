@@ -6,7 +6,6 @@ import (
 	"QuickPiperAudiobook/internal/lib"
 	"QuickPiperAudiobook/internal/parsers/epub"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -90,7 +89,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 			i := i             // local variable to capture range variable in local scope
 			convertedReader, err := ebookconvert.ConvertToText(section.Text, filepath.Ext(section.Filename))
 			if err != nil && err != (*ebookconvert.EmptyConversionResultError)(nil) {
-				log.Printf("Warning: Internal file %s was empty when converting %s to a plaintext chapter\nSkipping it in the final audiobook. This is ok if it was just images or a titlepage.", config.FileName, section.Filename)
+				log.Printf("Warning: Internal file %s was empty when converting %s to a plaintext chapter\nSkipping it in the final audiobook. This is ok if it was just images or a titlepage.", section.Filename, config.FileName)
 				return nil
 			} else if err != nil {
 				return err
@@ -150,19 +149,17 @@ func processWithoutChapters(piper piper.PiperClient, config AudiobookArgs) (stri
 		return "", err
 	}
 
-	var reader io.Reader
+	convertedReader, err := ebookconvert.ConvertToText(rawFile, filepath.Ext(config.FileName))
+	if err != nil {
+		return "", err
+	}
+
 	if !config.SpeakUTF8 {
-		reader, err = iconv.RemoveDiacritics(rawFile)
+		reader, err := iconv.RemoveDiacritics(convertedReader)
 		if err != nil {
 			return "", err
 		}
-	} else {
-		reader = rawFile
-	}
-
-	convertedReader, err := ebookconvert.ConvertToText(reader, filepath.Ext(config.FileName))
-	if err != nil {
-		return "", err
+		convertedReader = reader
 	}
 
 	streamOutput, piperOutputFilename, err := piper.Run(config.FileName, convertedReader, config.OutputDirectory, config.OutputAsMp3)

@@ -16,6 +16,7 @@ func IsUrl(str string) bool {
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
+// Download a file from a URL and put it in the specified directory with the specified name
 func DownloadFile(url, outputName, outputDir string) (*os.File, error) {
 
 	if !strings.HasSuffix(outputDir, "/") {
@@ -24,7 +25,7 @@ func DownloadFile(url, outputName, outputDir string) (*os.File, error) {
 
 	outputPath := outputDir + outputName
 
-	println("Downloading " + outputName + " to " + outputPath)
+	log.Print("Downloading " + outputName + " to " + outputPath)
 
 	file, err := os.Create(outputPath)
 	if err != nil {
