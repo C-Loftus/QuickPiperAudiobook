@@ -57,7 +57,10 @@ func sanityCheckConfig(config *AudiobookArgs) error {
 	}
 
 	if _, err := os.Stat(config.OutputDirectory); os.IsNotExist(err) {
-		return fmt.Errorf("the output directory %s does not exist", config.OutputDirectory)
+		log.Warnf("the output directory %s does not exist. Creating it now", config.OutputDirectory)
+		if err := os.MkdirAll(config.OutputDirectory, 0755); err != nil {
+			return fmt.Errorf("failed to create output directory: %v", err)
+		}
 	}
 
 	if config.Chapters && filepath.Ext(config.FileName) != ".epub" {
