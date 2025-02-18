@@ -32,7 +32,7 @@ func TestConcat(t *testing.T) {
 	require.NoError(t, err)
 	require.Greater(t, concatInfo.Size(), firstInfo.Size())
 
-	showChapterCmd := fmt.Sprintf("ffprobe -i %s -show_chapters", outputFile)
+	showChapterCmd := []string{"ffprobe", "-i", outputFile, "-show_chapters"}
 	output, err := binarymanagers.Run(showChapterCmd)
 	require.NoError(t, err)
 	chapter1Index := strings.Index(output, "Chapter 1")

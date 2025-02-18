@@ -61,7 +61,7 @@ func sanityCheckConfig(config *AudiobookArgs) error {
 	}
 
 	if config.Chapters && filepath.Ext(config.FileName) != ".epub" {
-		log.Warnf("currently only epub files can be split into chapters. Ignore chapter splitting for %s", config.FileName)
+		log.Warnf("Currently only epub files can be split into chapters. Ignoring chapter splitting for %s", config.FileName)
 		config.Chapters = false
 	}
 
@@ -144,6 +144,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 			if err != nil {
 				return err
 			}
+			log.Debugf("Converted section %d to %s", i, tmpMP3)
 
 			// Place the MP3 path into our slice in the correct index
 			mu.Lock()

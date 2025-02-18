@@ -41,7 +41,8 @@ jobs:
       - name: Run Dummy CLI E2E with config
         run: |
           # Create the Audiobook directory in the home directory
-          # /home/runner resolves to ~ in GitHub Actions
+          # /home/runner is the home directory in GitHub Actions but we 
+          # don't appear to be able to use ~ for some reason
           mkdir -p /home/runner/Audiobooks
           go run . --config ./examples/config.yaml README.md
           if [ ! -f "/home/runner/Audiobooks/README.wav" ]; then

@@ -42,9 +42,9 @@ func RunPiped(cmdName string, args []string, pipedInput io.Reader) (PipedOutput,
 }
 
 // Run a shell command and output the combined stdout and stderr
-func Run(cmd string) (string, error) {
+func Run(cmd []string) (string, error) {
 
-	fullCmd := exec.Command("sh", "-c", cmd)
+	fullCmd := exec.Command(cmd[0], cmd[1:]...)
 
 	outputBytes, err := fullCmd.CombinedOutput()
 	if err != nil {

@@ -9,7 +9,7 @@ import (
 )
 
 func TestRunBinary(t *testing.T) {
-	output, err := Run("echo hello")
+	output, err := Run([]string{"echo", "hello"})
 	require.NoError(t, err)
 	require.Equal(t, "hello\n", output)
 }
