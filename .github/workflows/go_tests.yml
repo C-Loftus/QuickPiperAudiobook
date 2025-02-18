@@ -42,7 +42,7 @@ jobs:
         run: |
           # Create the Audiobook directory in the home directory
           # /home/runner resolves to ~ in GitHub Actions
-          mkdir -p /home/runner/Audiobook
+          mkdir -p /home/runner/Audiobooks
           go run . --config ./examples/config.yaml README.md
           if [ ! -f "~/Audiobook/README.mp3" ]; then
             echo "Error: README.mp3 was not generated!"
