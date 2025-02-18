@@ -27,14 +27,23 @@ jobs:
       - name: Run Docker Container and generate wav
         run: |
           docker run -v $(pwd)/examples/lorem_ipsum.txt:/app/examples/lorem_ipsum.txt quickpiperaudiobook /app/examples/lorem_ipsum.txt
+          if [ ! -f "lorem_ipsum.wav" ]; then
+            echo "Error: lorem_ipsum.wav was not generated!"
+            exit 1
+          fi
 
       - name: Run Docker Container and generate mp3
         run: |
           docker run -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --mp3 --output /app
-
-      - name: Verify MP3 File Exists
-        run: |
-          if [ ! -f "/app/lorem_ipsum.mp3" ]; then
+          if [ ! -f "lorem_ipsum.mp3" ]; then
             echo "Error: lorem_ipsum.mp3 was not generated!"
             exit 1
-          fi
+          fii
+
+      - name: Run with a config
+        run: |
+          docker run -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --config /app/examples/config.yaml
+          if [ ! -f "~/Audiobooks/lorem_ipsum.mp3" ]; then
+            echo "Error: lorem_ipsum.mp3 was not generated!"
+            exit 1
+          fii
