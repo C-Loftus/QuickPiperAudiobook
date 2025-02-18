@@ -78,12 +78,12 @@ func init() {
 
 	rootCmd.PersistentFlags().StringP("config", "c", "", "config file (default ~/.config/QuickPiperAudiobook/config.yaml)")
 
-	_ = rootCmd.PersistentFlags().Bool("speak-utf-8", false, "Enable UTF-8 speaking mode for non-English models that support reading UTF-8 characters")
+	_ = rootCmd.PersistentFlags().Bool("speak-utf-8", false, "Speak UTF-8 characters like Chinese characters or Diacritics. Often needed for non-English models")
 	_ = rootCmd.PersistentFlags().String("model", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
 	_ = rootCmd.PersistentFlags().String("output", ".", "The output directory for the audiobook")
 	_ = rootCmd.PersistentFlags().Bool("mp3", false, "Output the audiobook as an mp3 file (requires ffmpeg)")
 	_ = rootCmd.PersistentFlags().Bool("chapters", false, "Output the audiobook as an mp3 file and try to split it into chapters (requires ffmpeg and epub input file)")
-	_ = rootCmd.PersistentFlags().Int("threads", 4, "The number of threads to use (only applied if chapters is true)")
+	_ = rootCmd.PersistentFlags().Int("threads", 4, "The number of goroutines to use when splitting chapters (only applied if chapters is true)")
 	_ = rootCmd.PersistentFlags().Bool("verbose", false, "Enable verbose logging for debugging")
 	err = config.BindPFlags(rootCmd.PersistentFlags())
 	if err != nil {

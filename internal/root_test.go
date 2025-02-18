@@ -213,7 +213,7 @@ func TestInternalChapterLogic(t *testing.T) {
 
 		convertedReader, err := ebookconvert.ConvertToText(section.Text, filepath.Ext(section.Filename))
 		if err != nil && err != (*ebookconvert.EmptyConversionResultError)(nil) {
-			log.Warnf("Internal file %s was empty when converting it to a plaintext chapter. Skipping it in the final audiobook. This is ok if it was just images or a cover page.", section.Filename)
+			log.Warnf("Internal epub content '%s' was empty when converting it to a plaintext chapter. Skipping it in the final audiobook. This is ok if it was just images or a cover page.", section.Filename)
 			continue
 		} else {
 			require.NoError(t, err)

@@ -114,7 +114,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 			if err != nil {
 				var emptyErr *ebookconvert.EmptyConversionResultError
 				if errors.As(err, &emptyErr) {
-					log.Warnf("File %s was empty (images or cover). Skipping this chapter.",
+					log.Warnf("Internal file %s was empty when converting and will be skipped. This is expected if it contains just images or no text",
 						section.Filename)
 					return nil // skip
 				}
@@ -166,14 +166,11 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 			filteredMp3s = append(filteredMp3s, name)
 		}
 	}
-
-	// Final output
 	outputName := filepath.Join(
 		config.OutputDirectory,
 		strings.TrimSuffix(filepath.Base(config.FileName), filepath.Ext(config.FileName))+".mp3",
 	)
-
-	// Concatenate all final MP3s
+	log.Debugf("Concatenating %d MP3s", len(filteredMp3s))
 	err = ffmpeg.ConcatMp3s(filteredMp3s, outputName)
 	if err != nil {
 		return "", err
@@ -229,6 +226,9 @@ func processWithoutChapters(piper piper.PiperClient, config AudiobookArgs) (stri
 // Run the core audiobook creation process. Does not include any CLI parsing. Returns the filepath of the created audiobook.
 func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 
+	log.Debugf("Got config %+v", config)
+	start := time.Now()
+
 	config, err := expandHomeDir(config)
 	if err != nil {
 		return "", err
@@ -277,6 +277,9 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 		// sometimes a user may not have notify-send in their path
 		log.Warnf("failed sending alert notification after audiobook completion: %v", err)
 	}
+
+	elapsed := time.Since(start)
+	log.Debugf("Audiobook creation took %.2f seconds (%.2f minutes)", elapsed.Seconds(), elapsed.Minutes())
 
 	return outputName, nil
 }

@@ -120,6 +120,8 @@ func (piper PiperClient) Run(filename string, inputData io.Reader, outdir string
 		piperArgs = append(piperArgs, "--output_file", filepathAbs)
 	}
 
+	log.Debugf("Running piper with args %v", piperArgs)
+
 	output, err := bin.RunPiped(piper.binary, piperArgs, inputData)
 	if err != nil {
 		return bin.PipedOutput{}, "", fmt.Errorf("failed to run piper: %v", err)
