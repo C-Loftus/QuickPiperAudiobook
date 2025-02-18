@@ -26,24 +26,36 @@ jobs:
 
       - name: Run Docker Container and generate wav
         run: |
-          docker run -v $(pwd)/examples/lorem_ipsum.txt:/app/examples/lorem_ipsum.txt quickpiperaudiobook /app/examples/lorem_ipsum.txt
-          if ! docker exec $(docker ps -ql) test -f /app/lorem_ipsum.wav; then
+          CONTAINER_ID=$(docker run -d -v $(pwd)/examples/lorem_ipsum.txt:/app/examples/lorem_ipsum.txt quickpiperaudiobook /app/examples/lorem_ipsum.txt)
+          docker logs -f $CONTAINER_ID
+          docker wait $CONTAINER_ID
+          if ! docker cp $CONTAINER_ID:/app/lorem_ipsum.wav ./; then
             echo "Error: lorem_ipsum.wav was not generated in the container!"
+            docker logs $CONTAINER_ID
             exit 1
           fi
+          docker rm $CONTAINER_ID
 
       - name: Run Docker Container and generate mp3
         run: |
-          docker run -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --mp3 --output /app
-          if ! docker exec $(docker ps -ql) test -f /app/lorem_ipsum.mp3; then
+          CONTAINER_ID=$(docker run -d -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --mp3 --output /app)
+          docker logs -f $CONTAINER_ID
+          docker wait $CONTAINER_ID
+          if ! docker cp $CONTAINER_ID:/app/lorem_ipsum.mp3 ./; then
             echo "Error: lorem_ipsum.mp3 was not generated in the container!"
+            docker logs $CONTAINER_ID
             exit 1
           fi
+          docker rm $CONTAINER_ID
 
       - name: Run with a config
         run: |
-          docker run -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --config /app/examples/config.yaml
-          if ! docker exec $(docker ps -ql) test -f /root/Audiobooks/lorem_ipsum.mp3; then
+          CONTAINER_ID=$(docker run -d -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --config /app/examples/config.yaml)
+          docker logs -f $CONTAINER_ID
+          docker wait $CONTAINER_ID
+          if ! docker cp $CONTAINER_ID:/root/Audiobooks/lorem_ipsum.mp3 ./; then
             echo "Error: lorem_ipsum.mp3 was not generated in the container!"
+            docker logs $CONTAINER_ID
             exit 1
           fi
+          docker rm $CONTAINER_ID
