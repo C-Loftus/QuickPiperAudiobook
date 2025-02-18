@@ -31,7 +31,6 @@ jobs:
           docker wait $CONTAINER_ID
           if ! docker cp $CONTAINER_ID:/app/lorem_ipsum.wav ./; then
             echo "Error: lorem_ipsum.wav was not generated in the container!"
-            docker logs $CONTAINER_ID
             exit 1
           fi
           docker rm $CONTAINER_ID
@@ -43,7 +42,6 @@ jobs:
           docker wait $CONTAINER_ID
           if ! docker cp $CONTAINER_ID:/app/lorem_ipsum.mp3 ./; then
             echo "Error: lorem_ipsum.mp3 was not generated in the container!"
-            docker logs $CONTAINER_ID
             exit 1
           fi
           docker rm $CONTAINER_ID

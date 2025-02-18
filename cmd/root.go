@@ -66,8 +66,7 @@ func init() {
 	rootCmd.PersistentFlags().Int("threads", 4, "Number of threads for chapter splitting (if applicable)")
 	rootCmd.PersistentFlags().Bool("verbose", false, "Enable verbose logging for debugging")
 
-	// Bind flags to Viper
-	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
+	if err := config.BindPFlags(rootCmd.PersistentFlags()); err != nil {
 		log.Fatalf("Error binding flags: %v", err)
 	}
 
