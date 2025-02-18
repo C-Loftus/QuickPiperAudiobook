@@ -40,6 +40,7 @@ jobs:
 
       - name: Run Dummy CLI E2E with config
         run: |
+          mkdir -p ~/Audiobook
           go run . --config ./examples/config.yaml README.md
           if [ ! -f "~/Audiobook/README.mp3" ]; then
             echo "Error: README.mp3 was not generated!"

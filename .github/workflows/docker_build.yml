@@ -26,7 +26,7 @@ jobs:
 
       - name: Run Docker Container and generate wav
         run: |
-          CONTAINER_ID=$(docker run -d -v $(pwd)/examples/lorem_ipsum.txt:/app/examples/lorem_ipsum.txt quickpiperaudiobook /app/examples/lorem_ipsum.txt)
+          CONTAINER_ID=$(docker run -d -v $(pwd)/examples/lorem_ipsum.txt:/app/examples/lorem_ipsum.txt quickpiperaudiobook /app/examples/lorem_ipsum.txt --verbose)
           docker logs -f $CONTAINER_ID
           docker wait $CONTAINER_ID
           if ! docker cp $CONTAINER_ID:/app/lorem_ipsum.wav ./; then
@@ -38,7 +38,7 @@ jobs:
 
       - name: Run Docker Container and generate mp3
         run: |
-          CONTAINER_ID=$(docker run -d -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --mp3 --output /app)
+          CONTAINER_ID=$(docker run -d -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --mp3 --output /app --verbose)
           docker logs -f $CONTAINER_ID
           docker wait $CONTAINER_ID
           if ! docker cp $CONTAINER_ID:/app/lorem_ipsum.mp3 ./; then
