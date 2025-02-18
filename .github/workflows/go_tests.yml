@@ -44,7 +44,7 @@ jobs:
           # /home/runner resolves to ~ in GitHub Actions
           mkdir -p /home/runner/Audiobooks
           go run . --config ./examples/config.yaml README.md
-          if [ ! -f "~/Audiobook/README.wav" ]; then
+          if [ ! -f "/home/runner/Audiobooks/README.wav" ]; then
             echo "Error: README.wav was not generated!"
             exit 1
           fi
