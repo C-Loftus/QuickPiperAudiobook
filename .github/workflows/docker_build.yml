@@ -43,7 +43,7 @@ jobs:
       - name: Run with a config
         run: |
           docker run -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --config /app/examples/config.yaml
-          if ! docker exec $(docker ps -ql) test -f /root/lorem_ipsum.mp3; then
+          if ! docker exec $(docker ps -ql) test -f /root/Audiobooks/lorem_ipsum.mp3; then
             echo "Error: lorem_ipsum.mp3 was not generated in the container!"
             exit 1
           fi
