@@ -1,97 +1,102 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	log "github.com/charmbracelet/log"
-
-	"QuickPiperAudiobook/internal"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"QuickPiperAudiobook/internal"
 )
 
-var (
-	config *viper.Viper
-)
+var config *viper.Viper
 
 // Root command for the CLI
-// Does all parsing, and then passes arguments to the internal package
 var rootCmd = &cobra.Command{
 	Use:   "QuickPiperAudiobook <file>",
-	Short: "Converts an audiobook file to another format",
-	Long:  "Convert text files from a variety of format into an audiobook",
-	Args: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 1 {
-			return fmt.Errorf("you must specify a file to convert")
-		}
-		return nil
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-		filePath := args[0]
-		model := config.GetString("model")
-		log.Infof("Processing file: %s with model: %s", filePath, model)
-		outDir := config.GetString("output")
-		speakUTF8 := config.GetBool("speak-utf-8")
-		outputMp3 := config.GetBool("mp3")
-		chapters := config.GetBool("chapters")
-		threads := config.GetInt("threads")
-		verbose := config.GetBool("verbose")
+	Short: "Converts a text file into an audiobook",
+	Long:  "Convert text files from various formats into an audiobook",
+	Args:  cobra.ExactArgs(1),
+	Run:   runAudiobookConversion,
+}
 
-		if verbose {
-			log.SetLevel(log.DebugLevel)
-		}
+func runAudiobookConversion(cmd *cobra.Command, args []string) {
+	filePath := args[0]
+	model := config.GetString("model")
+	outDir := config.GetString("output")
+	speakUTF8 := config.GetBool("speak-utf-8")
+	outputMp3 := config.GetBool("mp3")
+	chapters := config.GetBool("chapters")
+	threads := config.GetInt("threads")
+	verbose := config.GetBool("verbose")
 
-		conf := internal.AudiobookArgs{
-			FileName:        filePath,
-			Model:           model,
-			OutputDirectory: outDir,
-			SpeakUTF8:       speakUTF8,
-			OutputAsMp3:     outputMp3,
-			Chapters:        chapters,
-			Threads:         threads,
-		}
+	if verbose {
+		log.SetLevel(log.DebugLevel)
+	}
 
-		_, err := internal.QuickPiperAudiobook(conf)
-		if err != nil {
-			log.Fatal(err)
-		}
-	},
+	log.Infof("Processing file: %s with model: %s", filePath, model)
+
+	conf := internal.AudiobookArgs{
+		FileName:        filePath,
+		Model:           model,
+		OutputDirectory: outDir,
+		SpeakUTF8:       speakUTF8,
+		OutputAsMp3:     outputMp3,
+		Chapters:        chapters,
+		Threads:         threads,
+	}
+
+	if _, err := internal.QuickPiperAudiobook(conf); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func init() {
+	// Initialize configuration instance
 	config = viper.New()
-	config.SetConfigName("config.yaml")
-	config.SetConfigType("yaml")
-	config.AddConfigPath("/etc/QuickPiperAudiobook/")
-	config.AddConfigPath("$HOME/.config/QuickPiperAudiobook")
-	err := config.ReadInConfig()
 
-	if err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Debug("Config file not found, using CLI flags and defaults only")
-		} else {
-			log.Fatalf("Error reading config file: %v\n", err)
-		}
+	// Define CLI flags
+	rootCmd.PersistentFlags().String("config", "", "Path to the config file (default ~/.config/QuickPiperAudiobook/config.yaml)")
+	rootCmd.PersistentFlags().Bool("speak-utf-8", false, "Enable UTF-8 character speech (e.g., Chinese, diacritics)")
+	rootCmd.PersistentFlags().String("model", "en_US-hfc_male-medium.onnx", "Speech synthesis model to use")
+	rootCmd.PersistentFlags().String("output", ".", "Output directory for the audiobook")
+	rootCmd.PersistentFlags().Bool("mp3", false, "Export audiobook as MP3 (requires ffmpeg)")
+	rootCmd.PersistentFlags().Bool("chapters", false, "Split audiobook into chapters (requires ffmpeg & epub input)")
+	rootCmd.PersistentFlags().Int("threads", 4, "Number of threads for chapter splitting (if applicable)")
+	rootCmd.PersistentFlags().Bool("verbose", false, "Enable verbose logging for debugging")
+
+	// Bind flags to Viper
+	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
+		log.Fatalf("Error binding flags: %v", err)
 	}
 
-	rootCmd.PersistentFlags().StringP("config", "c", "", "config file (default ~/.config/QuickPiperAudiobook/config.yaml)")
-
-	_ = rootCmd.PersistentFlags().Bool("speak-utf-8", false, "Speak UTF-8 characters like Chinese characters or Diacritics. Often needed for non-English models")
-	_ = rootCmd.PersistentFlags().String("model", "en_US-hfc_male-medium.onnx", "The model to use for speech synthesis")
-	_ = rootCmd.PersistentFlags().String("output", ".", "The output directory for the audiobook")
-	_ = rootCmd.PersistentFlags().Bool("mp3", false, "Output the audiobook as an mp3 file (requires ffmpeg)")
-	_ = rootCmd.PersistentFlags().Bool("chapters", false, "Output the audiobook as an mp3 file and try to split it into chapters (requires ffmpeg and epub input file)")
-	_ = rootCmd.PersistentFlags().Int("threads", 4, "The number of goroutines to use when splitting chapters (only applied if chapters is true)")
-	_ = rootCmd.PersistentFlags().Bool("verbose", false, "Enable verbose logging for debugging")
-	err = config.BindPFlags(rootCmd.PersistentFlags())
-	if err != nil {
-		log.Fatalf("Error binding flags: %v\n", err)
-	}
-
+	cobra.OnInitialize(initConfig)
 }
 
+// Initializes the configuration
+func initConfig() {
+	customConfPath, _ := rootCmd.PersistentFlags().GetString("config")
+
+	if customConfPath != "" {
+		config.SetConfigFile(customConfPath)
+	} else {
+		config.SetConfigName("config")
+		config.SetConfigType("yaml")
+		config.AddConfigPath("/etc/QuickPiperAudiobook/")
+		config.AddConfigPath("$HOME/.config/QuickPiperAudiobook")
+	}
+
+	if err := config.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			log.Info("Config file not found, using CLI flags and defaults only")
+		} else {
+			log.Fatalf("Error reading config file: %v", err)
+		}
+	}
+}
+
+// Execute runs the root command
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

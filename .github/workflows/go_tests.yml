@@ -37,3 +37,11 @@ jobs:
       # unfortunately we have to do this since ebook-convert requires tmp files and not stdin/stdout
       - name: Run Go tests
         run: go test ./... -p 1 -count=1
+
+      - name: Run Dummy CLI E2E with config
+        run: |
+          go run . --config ./examples/config.yaml README.md
+          if [ ! -f "~/Audiobook/README.mp3" ]; then
+            echo "Error: README.mp3 was not generated!"
+            exit 1
+          fi

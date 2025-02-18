@@ -1,1 +1,0 @@
-This directory contains e2e with test containers so that we can run CLI tests in a fully isolated environment. It is a work in progress.
