@@ -50,7 +50,7 @@ jobs:
 
       - name: Run with a config
         run: |
-          CONTAINER_ID=$(docker run -d -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --config /app/examples/config.yaml)
+          CONTAINER_ID=$(docker run -d -v $(pwd)/examples:/app/examples quickpiperaudiobook /app/examples/lorem_ipsum.txt --config /app/examples/config.yaml --verbose )
           docker logs -f $CONTAINER_ID
           docker wait $CONTAINER_ID
           if ! docker cp $CONTAINER_ID:/root/Audiobooks/lorem_ipsum.mp3 ./; then
