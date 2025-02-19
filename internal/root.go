@@ -84,7 +84,7 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 	errorGroup := errgroup.Group{}
 
 	if config.Threads == 0 {
-		log.Warn("threads is set to 0 so will use all available cores; this may cause CPU overload")
+		log.Warn("Threads value was set to special value 0; ignoring thread limit and using all available resources; this may cause CPU overload")
 	} else {
 		errorGroup.SetLimit(config.Threads)
 	}
@@ -125,9 +125,13 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 				convertedReader = reader
 			}
 
+			// we use a tee reader here so that we can get the title of the audiobook
+			// while still being able to pass the full text to piper
 			buf := new(bytes.Buffer)
 			teeReader := io.TeeReader(convertedReader, buf)
-
+			// 20 is an arbitrary number of bytes to read to get the title
+			// the goal is not to have a perfect title but to have something
+			// that is reasonably identifiable
 			first20 := make([]byte, 20)
 			_, err = io.ReadFull(teeReader, first20)
 			if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {

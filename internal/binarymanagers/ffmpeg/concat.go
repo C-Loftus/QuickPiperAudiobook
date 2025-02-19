@@ -95,8 +95,18 @@ func generateMetadataFile(metadataFile *os.File, sectionsInOrder []Mp3Section) e
 			section.Title = fmt.Sprintf("Chapter %d", i+1)
 		}
 
+		// Start chapters 500ms before the actual start time
+		// Without this, the chapter starts exactly when speech starts
+		// which often ends up cutting off the first word or making
+		// it sound bad in many audiobook players
+		const fiveHundredMs = 500
+		startTimeOffset := startTime - fiveHundredMs
+		if startTimeOffset < 0 {
+			startTimeOffset = 0
+		}
+
 		chapter := fmt.Sprintf("\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=%d\nEND=%d\ntitle=%s\n",
-			startTime, endTime, section.Title)
+			startTimeOffset, endTime, section.Title)
 
 		_, err := metadataFile.WriteString(chapter)
 		if err != nil {
