@@ -1,18 +1,11 @@
 package internal
 
 import (
-	ebookconvert "QuickPiperAudiobook/internal/binarymanagers/ebookConvert"
-	"QuickPiperAudiobook/internal/binarymanagers/ffmpeg"
-	"QuickPiperAudiobook/internal/binarymanagers/iconv"
-	"QuickPiperAudiobook/internal/binarymanagers/piper"
-	"QuickPiperAudiobook/internal/parsers/epub"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	log "github.com/charmbracelet/log"
 	"github.com/stretchr/testify/require"
 )
 
@@ -178,79 +171,28 @@ func TestQuickPiperAudiobookWithMp3(t *testing.T) {
 		require.True(t, strings.HasSuffix(outputFilename, ".mp3"))
 	})
 
-}
+	t.Run("end to end with no concurrency; epub has 2 chapters and a title page that is skipped", func(t *testing.T) {
 
-// Test the internal functionality of the function that generates an
-// epub with chapters
-func TestInternalChapterLogic(t *testing.T) {
-
-	config := AudiobookArgs{
-		FileName:        filepath.Join("testdata", "titlepage_and_2_chapters.epub"),
-		Model:           "en_US-lessac-medium.onnx",
-		OutputDirectory: ".",
-		SpeakUTF8:       false,
-	}
-
-	splitter, err := epub.NewEpubSplitter(config.FileName)
-	require.NoError(t, err)
-	defer splitter.Close()
-	sections, err := splitter.SplitBySection()
-	require.NoError(t, err)
-
-	// Initialize the slice to store mp3 files in the correct order
-	var mp3InOrder = make([]string, len(sections))
-
-	temp_mp3_dir_name, err := os.MkdirTemp("", "piper-ffmpeg-dir-*")
-	defer os.RemoveAll(temp_mp3_dir_name)
-	require.NoError(t, err)
-
-	piperClient, err := piper.NewPiperClient(config.Model)
-	require.NoError(t, err)
-
-	for i, section := range sections {
-
-		section.Filename = strings.ReplaceAll(section.Filename, "/", "_")
-
-		convertedReader, err := ebookconvert.ConvertToText(section.Text, filepath.Ext(section.Filename))
-		if err != nil && err != (*ebookconvert.EmptyConversionResultError)(nil) {
-			log.Warnf("Internal epub content '%s' was empty when converting it to a plaintext chapter. Skipping it in the final audiobook. This is ok if it was just images or a cover page.", section.Filename)
-			continue
-		} else {
-			require.NoError(t, err)
-		}
-		if !config.SpeakUTF8 {
-			reader, err := iconv.RemoveDiacritics(convertedReader)
-			require.NoError(t, err)
-			convertedReader = reader
-		}
-
-		streamOutput, _, err := piperClient.Run(section.Filename, convertedReader, config.OutputDirectory, true)
+		file, err := os.Open(filepath.Join("testdata", "titlepage_and_2_chapters.epub"))
 		require.NoError(t, err)
+		defer file.Close()
 
-		tmp_mp3_name := filepath.Join(temp_mp3_dir_name, fmt.Sprintf("%d-section-piper-output-%s.mp3", i, section.Filename))
-
-		err = ffmpeg.OutputToMp3(streamOutput.Stdout, tmp_mp3_name)
-		require.NoError(t, err)
-
-		// Insert the generated MP3 file inside the list in correct order
-		mp3InOrder[i] = tmp_mp3_name
-
-	}
-
-	// filter out empty mp3s which signify chapters with no data
-	// i.e. title page or just images
-	var filteredMp3InOrder []string
-	for _, tmp_mp3_name := range mp3InOrder {
-		if tmp_mp3_name == "" {
-			continue
+		conf := AudiobookArgs{
+			FileName:        file.Name(),
+			Model:           "en_US-lessac-medium.onnx",
+			OutputDirectory: ".",
+			SpeakUTF8:       false,
+			OutputAsMp3:     true,
+			Chapters:        true,
+			Threads:         1,
 		}
-		filteredMp3InOrder = append(filteredMp3InOrder, tmp_mp3_name)
-	}
 
-	outputName := filepath.Join(config.OutputDirectory, strings.TrimSuffix(filepath.Base(config.FileName), filepath.Ext(config.FileName))) + ".mp3"
-
-	err = ffmpeg.ConcatMp3s(filteredMp3InOrder, outputName)
-	require.NoError(t, err)
-	defer os.Remove(outputName)
+		outputFilename, err := QuickPiperAudiobook(conf)
+		defer os.Remove(outputFilename)
+		require.NoError(t, err)
+		_, err = os.Stat(outputFilename)
+		require.NoError(t, err)
+		require.True(t, strings.HasSuffix(outputFilename, ".mp3"))
+	})
 
 }

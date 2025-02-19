@@ -5,8 +5,10 @@ import (
 	"QuickPiperAudiobook/internal/binarymanagers/piper"
 	"QuickPiperAudiobook/internal/lib"
 	"QuickPiperAudiobook/internal/parsers/epub"
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -67,7 +69,6 @@ func sanityCheckConfig(config *AudiobookArgs) error {
 
 	return nil
 }
-
 func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, error) {
 	splitter, err := epub.NewEpubSplitter(config.FileName)
 	if err != nil {
@@ -89,25 +90,20 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 	}
 
 	var mu sync.Mutex
-
-	// Initialize the slice to store mp3 files in the correct order
-	mp3InOrder := make([]string, len(sections))
+	mp3InOrder := make([]ffmpeg.Mp3Section, len(sections))
 
 	tempDir, err := os.MkdirTemp("", "piper-ffmpeg-dir-*")
 	if err != nil {
 		return "", err
 	}
-	// Clean up temp dir at the end
 	defer os.RemoveAll(tempDir)
 
 	for i, section := range sections {
-		// capture the loop variables in local scope for the goroutine
 		i, section := i, section
 
 		errorGroup.Go(func() error {
 			section.Filename = strings.ReplaceAll(section.Filename, "/", "_")
 
-			// Convert to plaintext
 			convertedReader, err := ebookconvert.ConvertToText(
 				section.Text, filepath.Ext(section.Filename),
 			)
@@ -116,9 +112,8 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 				if errors.As(err, &emptyErr) {
 					log.Warnf("Internal file %s was empty when converting and will be skipped. This is expected if it contains just images or no text",
 						section.Filename)
-					return nil // skip
+					return nil
 				}
-				// Otherwise, return the real error so we don't produce a bad MP3
 				return err
 			}
 
@@ -130,8 +125,18 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 				convertedReader = reader
 			}
 
-			// Run piper in "streamOutput" mode
-			streamOutput, _, err := piper.Run(section.Filename, convertedReader, config.OutputDirectory, true)
+			buf := new(bytes.Buffer)
+			teeReader := io.TeeReader(convertedReader, buf)
+
+			first20 := make([]byte, 20)
+			_, err = io.ReadFull(teeReader, first20)
+			if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+				return err
+			}
+
+			title := strings.TrimSpace(string(first20))
+
+			streamOutput, _, err := piper.Run(section.Filename, io.MultiReader(buf, convertedReader), config.OutputDirectory, true)
 			if err != nil {
 				return err
 			}
@@ -146,27 +151,28 @@ func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, err
 			}
 			log.Debugf("Converted section %d to %s", i, tmpMP3)
 
-			// Place the MP3 path into our slice in the correct index
 			mu.Lock()
-			mp3InOrder[i] = tmpMP3
+			mp3InOrder[i] = ffmpeg.Mp3Section{
+				Mp3File: tmpMP3,
+				Title:   title,
+			}
 			mu.Unlock()
 
 			return nil
 		})
 	}
 
-	// Wait for all goroutines to finish
 	if err := errorGroup.Wait(); err != nil {
 		return "", err
 	}
 
-	// Filter out empty or skipped chapters
-	var filteredMp3s []string
-	for _, name := range mp3InOrder {
-		if name != "" {
-			filteredMp3s = append(filteredMp3s, name)
+	var filteredMp3s []ffmpeg.Mp3Section
+	for _, section := range mp3InOrder {
+		if section.Title != "" {
+			filteredMp3s = append(filteredMp3s, section)
 		}
 	}
+
 	outputName := filepath.Join(
 		config.OutputDirectory,
 		strings.TrimSuffix(filepath.Base(config.FileName), filepath.Ext(config.FileName))+".mp3",

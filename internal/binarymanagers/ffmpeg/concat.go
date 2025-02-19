@@ -7,14 +7,24 @@ import (
 	"path/filepath"
 )
 
+type Mp3Section struct {
+	// The title of the chapter
+	Title string
+	// The path to the mp3 file to use when concatenating
+	Mp3File string
+	// Duration of the MP3 file in milliseconds
+	Duration int64
+}
+
 // Concatenates MP3 files and saves the output as an MP3 file
 // with proper chapter metadata markers
-func ConcatMp3s(mp3sInOrder []string, outputName string) error {
+func ConcatMp3s(sectionsInOrder []Mp3Section, outputName string) error {
 	if _, err := exec.LookPath("ffmpeg"); err != nil {
 		return fmt.Errorf("ffmpeg not found in PATH: %v", err)
 	}
 
 	// Create temporary files for concat list and metadata
+	// this is needed for ffmpeg since ffmpeg uses it to determine the order of the files
 	concatFile, err := os.CreateTemp("", "concat-*.txt")
 	if err != nil {
 		return fmt.Errorf("failed to create temp concat file: %v", err)
@@ -27,12 +37,10 @@ func ConcatMp3s(mp3sInOrder []string, outputName string) error {
 	}
 	defer os.Remove(metadataFile.Name())
 
-	// Write absolute paths to concat file
-	var durations []int64
-	for _, mp3 := range mp3sInOrder {
-		absPath, err := filepath.Abs(mp3)
+	for i, section := range sectionsInOrder {
+		absPath, err := filepath.Abs(section.Mp3File)
 		if err != nil {
-			return fmt.Errorf("failed to get absolute path of %s: %v", mp3, err)
+			return fmt.Errorf("failed to get absolute path of %v: %v", section, err)
 		}
 
 		_, err = concatFile.WriteString(fmt.Sprintf("file '%s'\n", absPath))
@@ -45,7 +53,7 @@ func ConcatMp3s(mp3sInOrder []string, outputName string) error {
 		if err != nil {
 			return fmt.Errorf("failed to get duration of %s: %v", absPath, err)
 		}
-		durations = append(durations, duration)
+		sectionsInOrder[i].Duration = duration // Update the original slice element since we are iterating by copied value
 	}
 	err = concatFile.Close() // Ensure file is written
 	if err != nil {
@@ -53,7 +61,7 @@ func ConcatMp3s(mp3sInOrder []string, outputName string) error {
 	}
 
 	// Generate metadata file with chapter markers
-	if err := generateMetadataFile(metadataFile, durations); err != nil {
+	if err := generateMetadataFile(metadataFile, sectionsInOrder); err != nil {
 		return fmt.Errorf("failed to create metadata file: %v", err)
 	}
 
@@ -72,40 +80,23 @@ func ConcatMp3s(mp3sInOrder []string, outputName string) error {
 	return nil
 }
 
-// Retrieves the duration of an MP3 file in milliseconds using ffprobe.
-func getMp3Duration(mp3File string) (int64, error) {
-	// make sure that the file exists
-	if _, err := os.Stat(mp3File); os.IsNotExist(err) {
-		return 0, fmt.Errorf("file %s does not exist", mp3File)
-	}
-
-	cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration",
-		"-of", "default=noprint_wrappers=1:nokey=1", mp3File)
-	output, err := cmd.Output()
-	if err != nil {
-		return 0, fmt.Errorf("ffprobe error: %v %s", err, output)
-	}
-
-	var durationSec float64
-	_, err = fmt.Sscanf(string(output), "%f", &durationSec)
-	if err != nil {
-		return 0, fmt.Errorf("failed to parse ffprobe output: %v", err)
-	}
-	return int64(durationSec * 1000), nil // Convert to milliseconds
-}
-
 // Write an ffmetadata file with chapters based on MP3 durations.
-func generateMetadataFile(metadataFile *os.File, durations []int64) error {
+func generateMetadataFile(metadataFile *os.File, sectionsInOrder []Mp3Section) error {
 	_, err := metadataFile.WriteString(";FFMETADATA1\n")
 	if err != nil {
 		return err
 	}
 
 	startTime := int64(0)
-	for i, duration := range durations {
-		endTime := startTime + duration
-		chapter := fmt.Sprintf("\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=%d\nEND=%d\ntitle=Chapter %d\n",
-			startTime, endTime, i+1)
+	for i, section := range sectionsInOrder {
+		endTime := startTime + section.Duration
+
+		if section.Title == "" {
+			section.Title = fmt.Sprintf("Chapter %d", i+1)
+		}
+
+		chapter := fmt.Sprintf("\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=%d\nEND=%d\ntitle=%s\n",
+			startTime, endTime, section.Title)
 
 		_, err := metadataFile.WriteString(chapter)
 		if err != nil {
@@ -114,6 +105,6 @@ func generateMetadataFile(metadataFile *os.File, durations []int64) error {
 
 		startTime = endTime
 	}
-	metadataFile.Close() // Ensure file is written
+	metadataFile.Close()
 	return nil
 }
