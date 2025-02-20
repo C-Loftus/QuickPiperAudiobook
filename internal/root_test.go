@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"QuickPiperAudiobook/internal/binarymanagers"
 	"os"
 	"path/filepath"
 	"strings"
@@ -195,4 +196,64 @@ func TestQuickPiperAudiobookWithMp3(t *testing.T) {
 		require.True(t, strings.HasSuffix(outputFilename, ".mp3"))
 	})
 
+}
+
+func TestQuickPiperAudiobookWithUTF8(t *testing.T) {
+
+	t.Run("end to end with Chinese", func(t *testing.T) {
+
+		file, err := os.Open(filepath.Join("testdata", "chinese.epub"))
+		require.NoError(t, err)
+		defer file.Close()
+
+		conf := AudiobookArgs{
+			FileName:        file.Name(),
+			Model:           "zh_CN-huayan-medium.onnx",
+			OutputDirectory: ".",
+			SpeakUTF8:       true,
+			OutputAsMp3:     true,
+			Chapters:        true,
+			Threads:         3,
+		}
+
+		outputFilename, err := QuickPiperAudiobook(conf)
+		defer os.Remove(outputFilename)
+		require.NoError(t, err)
+		_, err = os.Stat(outputFilename)
+		require.NoError(t, err)
+		require.True(t, strings.HasSuffix(outputFilename, ".mp3"))
+
+		showChapterCmd := []string{"ffprobe", "-i", outputFilename, "-show_chapters"}
+		output, err := binarymanagers.Run(showChapterCmd)
+		require.NoError(t, err)
+		const heading1InChinese = "标题 1"
+		require.Contains(t, output, heading1InChinese)
+		const heading2InChinese = "标题 2"
+		require.Contains(t, output, heading2InChinese)
+	})
+
+	t.Run("end to end with Chinese Markdown", func(t *testing.T) {
+
+		file, err := os.Open(filepath.Join("testdata", "chinese.md"))
+		require.NoError(t, err)
+		defer file.Close()
+
+		conf := AudiobookArgs{
+			FileName:        file.Name(),
+			Model:           "zh_CN-huayan-medium.onnx",
+			OutputDirectory: ".",
+			SpeakUTF8:       true,
+			OutputAsMp3:     false,
+			Chapters:        true,
+			Threads:         4,
+		}
+
+		outputFilename, err := QuickPiperAudiobook(conf)
+		defer os.Remove(outputFilename)
+		require.NoError(t, err)
+		_, err = os.Stat(outputFilename)
+		require.NoError(t, err)
+		require.True(t, strings.HasSuffix(outputFilename, ".wav"))
+
+	})
 }

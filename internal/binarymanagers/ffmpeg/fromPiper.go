@@ -50,7 +50,7 @@ func OutputToMp3(piperRawAudio io.Reader, outputName string) error {
 	verifyCmd := exec.Command("ffmpeg", "-v", "error", "-i", outputName, "-f", "null", "-")
 	verifyOutput, err := verifyCmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("ffmpeg failed to verify output: %v\nstderr: %s", err, string(verifyOutput))
+		return fmt.Errorf("ffmpeg failed to validate audio output. This may be a sign of corrupted data; try setting a lower --thread value. Got error: %v\nstderr: %s", err, string(verifyOutput))
 	}
 
 	return nil
