@@ -52,7 +52,7 @@ Listen to sample output [ here ](./examples/)
 ### Configuring
 
 * You can create a config file at `~/.config/QuickPiperAudiobook/` to specify default values if you do not want to specify these cli args each time
-* You can use any arbitrary model by putting the associated `.onnx` and `.onnx.json` file for it in `~/.config/QuickPiperAudiobook/`
+  * i.e. you can use any arbitrary model by putting the associated `.onnx` and `.onnx.json` file for it in `~/.config/QuickPiperAudiobook/`
 
 
 ```yml
