@@ -30,24 +30,37 @@ func requireExistsThenRemove(t *testing.T, path string) {
 }
 
 func TestRootCommand(t *testing.T) {
-
 	const configData = "mp3: true\nchapters: true\n"
+
 	homedir, err := os.UserHomeDir()
 	require.NoError(t, err)
-	configPath := filepath.Join(homedir, ".config", "QuickPiperAudiobook", "config.yaml")
-	_ = os.Remove(configPath) // fine if it doesn't exist
+
+	configDir := filepath.Join(homedir, ".config", "QuickPiperAudiobook")
+	configPath := filepath.Join(configDir, "config.yaml")
+
+	// Ensure the config directory exists
+	err = os.MkdirAll(configDir, 0755)
+	require.NoError(t, err)
+
+	// Remove the existing config file if it exists
+	_ = os.Remove(configPath)
+
+	// Create the config file
 	err = os.WriteFile(configPath, []byte(configData), 0644)
 	require.NoError(t, err)
+
+	// Run the command
 	_, err = executeCommand("testdata/titlepage_and_2_chapters.epub")
 	require.NoError(t, err)
 
+	// make sure that the mp3 file was created since we set mp3 to true in the config
 	requireExistsThenRemove(t, "titlepage_and_2_chapters.mp3")
 
-	// make sure cli args override config
+	// Ensure CLI args override config
 	_, err = executeCommand("testdata/titlepage_and_2_chapters.epub", "--mp3=false", "--chapters=false")
 	require.NoError(t, err)
 	require.NoFileExists(t, "titlepage_and_2_chapters.mp3")
 
-	// make sure the wav file was created
+	// Ensure the wav file was created
 	requireExistsThenRemove(t, "titlepage_and_2_chapters.wav")
 }
