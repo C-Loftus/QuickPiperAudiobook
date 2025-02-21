@@ -1,8 +1,4 @@
-<center>
-<h1>
-QuickPiperAudiobook
-</h1>
-</center>
+<h1 style="text-align: center;">QuickPiperAudiobook</h1>
 
 <p align="center">
   <b> English </b> |
