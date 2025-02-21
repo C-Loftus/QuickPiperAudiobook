@@ -23,7 +23,7 @@ Listen to sample output [ here ](./examples/)
 1. Grab a prebuilt [release](https://github.com/C-Loftus/QuickPiperAudiobook/releases/)
     * (Or install using `go install github.com/C-Loftus/QuickPiperAudiobook@latest`)
     * (Or build from source using `go mod tidy && go build`)
-2. Download `ebook-convert` and make sure it is in your PATH. (This is often bundled with [calibre](https://calibre-ebook.com/))
+2. Download `ebook-convert` and make sure it is in your PATH. (This is bundled with [calibre](https://calibre-ebook.com/))
 3. _(Optional)_ Download `ffmpeg` for mp3 and chapter support 
 
 > [!NOTE]  
@@ -32,26 +32,27 @@ Listen to sample output [ here ](./examples/)
 
 ## Usage 
 
-* Pass in either a local file or a remote URL to generate an audiobook: 
+* Pass in either a local file or a remote URL 
    * i.e. `./QuickPiperAudiobook test.txt`
+* Specify the `--chapters` flag to generate mp3 chapters for epub files
+   * i.e. `./QuickPiperAudiobook --chapters test.epub`
 * For a full list of options use the `--help` flag
    * i.e. `./QuickPiperAudiobook --help`
 
 ### Non-English / UTF-8
 
-* Grab a model for the language of choice (.onnx and .json) from the [piper models](https://rhasspy.github.io/piper-samples/)
+* Grab a model for your language of choice (.onnx and .json) from the [piper models](https://rhasspy.github.io/piper-samples/)
   * i.e. `pl_PL-gosia-medium.onnx` and corresponding `pl_PL-gosia-medium.onnx.json` (rename if needed)
 * Put them in `~/.config/QuickPiperAudiobook/`
 * Use the `--speak-utf-8` and `--model=`  flags to specify you want utf characters to be spoken with a specific model
   * i.e. `./QuickPiperAudiobook --speak-utf-8 --model=pl_PL-gosia-medium.onnx MaszynaTuringa_Wikipedia.pdf`
 
 > [!NOTE]  
-> Consider specifying this model as the default in the configuration file if you plan to use it frequenlty
+> Consider specifying this model as the default in the configuration file if you plan to use it frequently
 
 ### Configuring
 
-* A configuration file at `~/.config/QuickPiperAudiobook/config.yml` will be automatically created. 
-* You can specify a default model and output path so you do not need to specify these args each time.
+* You can create a config file at `~/.config/QuickPiperAudiobook/` to specify default values if you do not want to specify these cli args each time
 * You can use any arbitrary model by putting the associated `.onnx` and `.onnx.json` file for it in `~/.config/QuickPiperAudiobook/`
 
 
@@ -78,5 +79,4 @@ This repo has only been tested on Linux.
 
 Thank you for considering supporting this project.
 
-I accept donations on Github or Paypal. 
-If you would like to sponsor this project or reach out to me regarding business opportunities, you can reach out to me via [email](mailto:github@colton.place) or [my website](https://colton.place/contact/)
+I accept donations on Github or Paypal. If you would like to sponsor this project or reach out to me for business reasons, you can contact me via [email](mailto:github@colton.place) or [my website](https://colton.place/contact/)

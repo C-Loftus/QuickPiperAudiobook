@@ -81,7 +81,6 @@ func initConfig() {
 	} else {
 		config.SetConfigName("config")
 		config.SetConfigType("yaml")
-		config.AddConfigPath("/etc/QuickPiperAudiobook/")
 		config.AddConfigPath("$HOME/.config/QuickPiperAudiobook")
 	}
 

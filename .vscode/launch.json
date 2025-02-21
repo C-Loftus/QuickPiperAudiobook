@@ -14,12 +14,20 @@
             "args": ["https://example-files.online-convert.com/document/txt/example.txt"],
         },
         {
-            "name": "Convert File",
+            "name": "Convert File with mp3",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
-            "args": ["dec.epub", "dec.epub", "--mp3", "--chapters"],
+            "args": ["internal/testdata/titlepage_and_2_chapters.epub", "--mp3", "--chapters"],
+        },
+        {
+            "name": "Convert File with wav",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "args": ["internal/testdata/titlepage_and_2_chapters.epub"],
         },
     ]
 }

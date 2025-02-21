@@ -9,6 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Run the root command
+// NOTE: There seems to be an issue with this given the fact
+// rootCmd is a global variable and cobra keeps global state
+// TODO come back to this and find a way to avoid it.
 func executeCommand(args ...string) (string, error) {
 	buf := new(bytes.Buffer)
 	newRootCmd := rootCmd
@@ -31,8 +35,7 @@ func TestRootCommand(t *testing.T) {
 	homedir, err := os.UserHomeDir()
 	require.NoError(t, err)
 	configPath := filepath.Join(homedir, ".config", "QuickPiperAudiobook", "config.yaml")
-	err = os.Remove(configPath)
-	require.NoError(t, err)
+	_ = os.Remove(configPath) // fine if it doesn't exist
 	err = os.WriteFile(configPath, []byte(configData), 0644)
 	require.NoError(t, err)
 	_, err = executeCommand("testdata/titlepage_and_2_chapters.epub")

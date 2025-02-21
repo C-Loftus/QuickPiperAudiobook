@@ -163,7 +163,9 @@ func (p PiperClient) Run(filename string, inputData io.Reader, outdir string, st
 		log.Warnf("Failed to read piper stderr: %v", readErr)
 	}
 	if len(stderrData) > 0 {
-		log.Warnf("piper stderr: %s", string(stderrData))
+		// this is debug level since piper always outputs general info to stderr
+		// which isn't an error.
+		log.Debugf("piper stderr: %s", string(stderrData))
 	}
 
 	waitErr := output.Handle.Wait()
@@ -173,6 +175,5 @@ func (p PiperClient) Run(filename string, inputData io.Reader, outdir string, st
 			waitErr, string(stderrData))
 	}
 
-	log.Infof("Piper output saved to: %s", outFilePath)
 	return bin.PipedOutput{}, outFilePath, nil
 }

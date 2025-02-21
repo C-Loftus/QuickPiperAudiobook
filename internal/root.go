@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -63,12 +64,21 @@ func sanityCheckConfig(config *AudiobookArgs) error {
 	}
 
 	if config.Chapters && filepath.Ext(config.FileName) != ".epub" {
+		// This is a warning and not an error since we want someone to be able to set chapters = true in the config
+		// to use chapters by default for any arbitrary text content and just fall back if it isnt supported
 		log.Warnf("Currently only epub files can be split into chapters. Ignoring chapter splitting for %s", config.FileName)
 		config.Chapters = false
 	}
 
+	if config.Threads > runtime.NumCPU() {
+		log.Warnf("%d threads is likely too high for your system; try setting it to a value below %d otherwise may get unexpected I/O errors", config.Threads, runtime.NumCPU())
+	}
+
 	return nil
 }
+
+// Run the conversion process with chaptered output
+// returns the name of the audiobook
 func processChapters(piper piper.PiperClient, config AudiobookArgs) (string, error) {
 	splitter, err := epub.NewEpubSplitter(config.FileName)
 	if err != nil {
@@ -237,7 +247,6 @@ func processWithoutChapters(piper piper.PiperClient, config AudiobookArgs) (stri
 // Run the core audiobook creation process. Does not include any CLI parsing. Returns the filepath of the created audiobook.
 func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 
-	log.Debugf("Got config %+v", config)
 	start := time.Now()
 
 	config, err := expandHomeDir(config)
@@ -248,6 +257,8 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 	if err := sanityCheckConfig(&config); err != nil {
 		return "", err
 	}
+
+	log.Debugf("Got config after checking and expanding: %+v", config)
 
 	if lib.IsUrl(config.FileName) {
 		fileNameInUrl := config.FileName[strings.LastIndex(config.FileName, "/")+1:]
