@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Make sure that we can generally convert epubs
 func TestConvertToText(t *testing.T) {
 	epubPath := filepath.Join("testdata", "test.epub")
 	inputFile, err := os.Open(epubPath)
@@ -30,4 +31,16 @@ func TestConvertToText(t *testing.T) {
 	expectedOutput, err := os.ReadFile(filepath.Join("testdata", "test.txt"))
 	require.NoError(t, err, "failed to read expected output")
 	require.Contains(t, string(outputBytes), string(expectedOutput), "output text does not match expected output")
+}
+
+// Make sure emptuy epubs return an error
+func TestConvertEmpty(t *testing.T) {
+
+	epubPath := filepath.Join("testdata", "empty.epub")
+	inputFile, err := os.Open(epubPath)
+	require.NoError(t, err, "failed to open test EPUB file")
+	defer inputFile.Close()
+
+	_, err = ConvertToText(inputFile, ".epub")
+	require.Error(t, err, "ConvertToText should return an error when input is nil")
 }

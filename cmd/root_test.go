@@ -2,48 +2,49 @@ package cmd
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func executeCommand(rootCmd *cobra.Command, args ...string) (string, error) {
+func executeCommand(args ...string) (string, error) {
 	buf := new(bytes.Buffer)
-	rootCmd.SetOut(buf)
-	rootCmd.SetErr(buf)
-	rootCmd.SetArgs(args)
-	err := rootCmd.Execute()
+	newRootCmd := rootCmd
+	newRootCmd.SetOut(buf)
+	newRootCmd.SetErr(buf)
+	newRootCmd.SetArgs(args)
+	err := newRootCmd.Execute()
 	return buf.String(), err
 }
 
-func TestRootCommand(t *testing.T) {
-	tests := []struct {
-		name    string
-		args    []string
-		wantErr bool
-	}{
-		{
-			name:    "Valid input file",
-			args:    []string{"../internal/testdata/chinese.md"},
-			wantErr: false,
-		},
-		{
-			name:    "Missing input file",
-			args:    []string{},
-			wantErr: true,
-		},
-	}
+func requireExistsThenRemove(t *testing.T, path string) {
+	require.FileExists(t, path)
+	err := os.Remove(path)
+	require.NoError(t, err)
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			output, err := executeCommand(rootCmd, tt.args...)
-			if tt.wantErr {
-				assert.Error(t, err, "Expected an error but got none")
-			} else {
-				assert.NoError(t, err, "Expected no error but got one")
-			}
-			assert.NotNil(t, output, "Expected output but got none")
-		})
-	}
+func TestRootCommand(t *testing.T) {
+
+	const configData = "mp3: true\nchapters: true\n"
+	homedir, err := os.UserHomeDir()
+	require.NoError(t, err)
+	configPath := filepath.Join(homedir, ".config", "QuickPiperAudiobook", "config.yaml")
+	err = os.Remove(configPath)
+	require.NoError(t, err)
+	err = os.WriteFile(configPath, []byte(configData), 0644)
+	require.NoError(t, err)
+	_, err = executeCommand("testdata/titlepage_and_2_chapters.epub")
+	require.NoError(t, err)
+
+	requireExistsThenRemove(t, "titlepage_and_2_chapters.mp3")
+
+	// make sure cli args override config
+	_, err = executeCommand("testdata/titlepage_and_2_chapters.epub", "--mp3=false", "--chapters=false")
+	require.NoError(t, err)
+	require.NoFileExists(t, "titlepage_and_2_chapters.mp3")
+
+	// make sure the wav file was created
+	requireExistsThenRemove(t, "titlepage_and_2_chapters.wav")
 }

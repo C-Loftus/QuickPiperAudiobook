@@ -286,7 +286,7 @@ func QuickPiperAudiobook(config AudiobookArgs) (string, error) {
 	if err != nil {
 		// although not critical, it's useful to know if the notification failed
 		// sometimes a user may not have notify-send in their path
-		log.Warnf("failed sending alert notification after audiobook completion: %v", err)
+		log.Errorf("failed sending alert notification after audiobook completion: %v", err)
 	}
 
 	elapsed := time.Since(start)

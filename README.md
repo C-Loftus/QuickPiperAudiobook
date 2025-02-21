@@ -62,6 +62,10 @@ Listen to sample output [ here ](./examples/)
 output: ~/Audiobooks
 # the default model to use if the user does not specify --model in the cli args
 model: "en_US-hfc_female-medium.onnx"
+# output the audiobook as an mp3 file (requires ffmpeg in your PATH)
+mp3: false
+# generate chapter metadata when outputting mp3s (requires an epub input and ffmpeg in your PATH)
+chapters: false
 ```
 
 ## Notes
@@ -75,4 +79,4 @@ This repo has only been tested on Linux.
 Thank you for considering supporting this project.
 
 I accept donations on Github or Paypal. 
-If you would like to sponsor this project or reach out to me regarding collaboration opportunities, you can reach out to me via [email](mailto:github@colton.place).
+If you would like to sponsor this project or reach out to me regarding business opportunities, you can reach out to me via [email](mailto:github@colton.place) or [my website](https://colton.place/contact/)

@@ -18,10 +18,10 @@ var rootCmd = &cobra.Command{
 	Short: "Converts a text file into an audiobook",
 	Long:  "Convert text files from various formats into an audiobook",
 	Args:  cobra.ExactArgs(1),
-	Run:   runAudiobookConversion,
+	RunE:  runAudiobookConversion,
 }
 
-func runAudiobookConversion(cmd *cobra.Command, args []string) {
+func runAudiobookConversion(cmd *cobra.Command, args []string) error {
 	filePath := args[0]
 	model := config.GetString("model")
 	outDir := config.GetString("output")
@@ -47,9 +47,8 @@ func runAudiobookConversion(cmd *cobra.Command, args []string) {
 		Threads:         threads,
 	}
 
-	if _, err := internal.QuickPiperAudiobook(conf); err != nil {
-		log.Fatal(err)
-	}
+	_, err := internal.QuickPiperAudiobook(conf)
+	return err
 }
 
 func init() {
