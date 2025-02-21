@@ -57,7 +57,7 @@ func init() {
 
 	// Define CLI flags
 	rootCmd.PersistentFlags().String("config", "", "Path to the config file (default ~/.config/QuickPiperAudiobook/config.yaml)")
-	rootCmd.PersistentFlags().Bool("speak-utf-8", false, "Enable UTF-8 character speech (e.g., Chinese, diacritics)")
+	rootCmd.PersistentFlags().Bool("speak-utf-8", false, "Enable UTF-8 character speech (don't strip out UTF-8 characters like Chinese or diacritics)")
 	rootCmd.PersistentFlags().String("model", "en_US-hfc_male-medium.onnx", "Speech synthesis model to use")
 	rootCmd.PersistentFlags().String("output", ".", "Output directory for the audiobook")
 	rootCmd.PersistentFlags().Bool("mp3", false, "Export audiobook as MP3 (requires ffmpeg)")
