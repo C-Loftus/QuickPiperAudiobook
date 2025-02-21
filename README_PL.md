@@ -1,4 +1,4 @@
-# QuickPiperAudiobook
+<h1 align=center>QuickPiperAudiobook</h1>
 
 <p align="center">
   <a href="./README.md">English</a> |
