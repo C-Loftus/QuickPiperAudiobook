@@ -1,0 +1,27 @@
+# An example for `~/.config/QuickPiperAudiobook/config.yml`
+# Values take priority of 
+# 1. cli args 
+# 2. config.yml
+# 3. defaults
+
+# the default output directory to use if the user does not specify --output in the cli args
+output: ~/Audiobooks
+
+# the default model to use if the user does not specify --model in the cli args
+model: "en_US-hfc_female-medium.onnx"
+
+# output the audiobook as an mp3 file (requires ffmpeg in your PATH); 
+# takes up less space than raw wav output from piper
+mp3: false
+
+# generate chapter metadata when outputting mp3s (requires an epub input and ffmpeg in your PATH)
+# chapters will be inserted as ID3 tags. Your mp3 player must support ID3 tags
+chapters: false
+
+# amount of goroutines (threads) to use for chapter splitting
+# best to keep it low since piper is already internally multithreaded
+# setting this value too high may cause unexpected I/O errors
+threads: 4
+
+# Output debug logs 
+verbose: false 

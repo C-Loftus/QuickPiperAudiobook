@@ -1,5 +1,3 @@
-piper/
-
 *tar.gz
 
 *.txt
@@ -11,3 +9,10 @@ piper/
 *.wav
 
 QuickPiperAudiobook
+
+*.mp3
+
+
+__debug*
+
+dec.epub

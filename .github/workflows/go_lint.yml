@@ -1,0 +1,12 @@
+name: Go Lint
+
+on: [push]
+
+jobs:
+  golangci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run Golangci-lint
+        uses: golangci/golangci-lint-action@v6.1.1

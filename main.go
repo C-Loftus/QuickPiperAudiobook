@@ -1,8 +1,10 @@
 package main
 
-import "QuickPiperAudiobook/cli"
+import (
+	"QuickPiperAudiobook/cmd"
+)
 
 func main() {
 	// Separated into separate function for easier testing
-	cli.RunCLI()
+	cmd.Execute()
 }
