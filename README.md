@@ -29,10 +29,9 @@ Listen to sample output [ here ](./examples/)
 > [!NOTE]  
 > You don't need to have piper installed. This program manages piper and the associated models
 
-
 ## Usage 
 
-* Pass in either a local file or a remote URL 
+* Pass in either a local file or a remote URL with the proper extension
    * i.e. `./QuickPiperAudiobook test.txt`
 * Specify the `--chapters` flag to generate mp3 chapters for epub files
    * i.e. `./QuickPiperAudiobook --chapters test.epub`
@@ -71,9 +70,8 @@ chapters: false
 
 ## Notes
 
-Piper does not support progress output. Long audiobooks may take a long time to generate since all computation is being done locally. 
-
-This repo has only been tested on Linux.
+- Piper does not support progress output. Long audiobooks may take a long time to generate since all computation is being done locally. 
+- This repo has only been tested on Linux.
 
 ## Support
 
