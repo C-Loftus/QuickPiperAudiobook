@@ -51,12 +51,12 @@ Listen to sample output [ here ](./examples/)
 
 ### Configuring
 
-* You can create a config file at `~/.config/QuickPiperAudiobook/` to specify default values if you do not want to specify these cli args each time
+* You can create a config file at `~/.config/QuickPiperAudiobook/` to specify preferred values if you do not want to specify these as cli args each time
   * i.e. you can use any arbitrary model by putting the associated `.onnx` and `.onnx.json` file for it in `~/.config/QuickPiperAudiobook/`
-
+  * A full example config can be found [here](./examples/config.yaml)
 
 ```yml
-# An example for `~/.config/QuickPiperAudiobook/config.yml`
+# An example for `~/.config/QuickPiperAudiobook/config.yaml`
 
 # the default output directory to use if the user does not specify --output in the cli args
 output: ~/Audiobooks
