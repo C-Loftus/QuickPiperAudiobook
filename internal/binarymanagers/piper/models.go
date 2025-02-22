@@ -8,24 +8,78 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
-func modelToUrl(modelName string) (interface{}, error) {
+// Model represents the JSON structure of each voice model.
+type Model struct {
+	Files map[string]struct {
+		SizeBytes int    `json:"size_bytes"`
+		MD5Digest string `json:"md5_digest"`
+	} `json:"files"`
+}
 
-	const remoteUrl = "https://huggingface.co/rhasspy/piper-voices/raw/main/voices.json"
-	resp, err := http.Get(remoteUrl)
+type PiperModelUrls struct {
+	OnnxFile       string
+	JsonConfigFile string
+}
+
+var (
+	voicesCache map[string]Model
+	cacheOnce   sync.Once
+	cacheErr    error
+)
+
+const remoteURL = "https://huggingface.co/rhasspy/piper-voices/raw/main/voices.json"
+
+// fetchVoicesJson fetches and caches voices.json
+func fetchVoicesJson() error {
+	resp, err := http.Get(remoteURL)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer resp.Body.Close()
 
-	var data interface{}
+	var data map[string]Model
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, err
+		return err
 	}
-	
-	for _, voice := range data.(map[string]interface{})["voices"].([]interface{}) {
 
+	voicesCache = data
+	return nil
+}
+
+// modelNameToUrls retrieves model URLs with caching
+func modelNameToUrls(modelName string) (PiperModelUrls, error) {
+	cacheOnce.Do(func() {
+		cacheErr = fetchVoicesJson()
+	})
+
+	if cacheErr != nil {
+		return PiperModelUrls{}, cacheErr
+	}
+
+	model, exists := voicesCache[modelName]
+	if !exists {
+		return PiperModelUrls{}, fmt.Errorf("model %s not found", modelName)
+	}
+
+	const baseUrl = "https://huggingface.co/rhasspy/piper-voices/resolve/main"
+	var modelUrls PiperModelUrls
+
+	for filePath := range model.Files {
+		if strings.HasSuffix(filePath, ".onnx") {
+			modelUrls.OnnxFile = baseUrl + "/" + filePath
+		} else if strings.HasSuffix(filePath, ".json") {
+			modelUrls.JsonConfigFile = baseUrl + "/" + filePath
+		}
+	}
+
+	if modelUrls.OnnxFile != "" && modelUrls.JsonConfigFile != "" {
+		return modelUrls, nil
+	}
+
+	return PiperModelUrls{}, fmt.Errorf("missing onnx or json for model %s", modelName)
 }
 
 // Try to find the model if it exists and otherwise try to download it
@@ -37,10 +91,10 @@ func findOrDownloadModel(modelName, defaultModelDir string) (string, error) {
 		return fullModelPath, nil
 	}
 
-	modelURL, ok := ModelToURL[modelName]
-	if !ok {
-		return "", fmt.Errorf("model '%s' not found", modelName)
-	}
+	modelURL := "test"
+	// if !ok {
+	// 	return "", fmt.Errorf("model '%s' not found", modelName)
+	// }
 
 	file, err := lib.DownloadFile(modelURL, modelName, defaultModelDir)
 	if err != nil {

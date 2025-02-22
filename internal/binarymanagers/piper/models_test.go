@@ -1,8 +1,7 @@
 package piper
 
 import (
-	"io"
-	"net/http"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -63,17 +62,25 @@ func TestExpandModelPath(t *testing.T) {
 }
 
 // Make sure that the voices.json file is up to date
-func TestVoicesJSONIsUpdated(t *testing.T) {
-	file, err := os.ReadFile("voices.json")
-	require.NoError(t, err)
-	fileAsString := string(file)
-	const remoteUrl = "https://huggingface.co/rhasspy/piper-voices/raw/main/voices.json"
-	resp, err := http.Get(remoteUrl)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-	bodyData := resp.Body
-	bodyAsString, err := io.ReadAll(bodyData)
-	require.NoError(t, err)
-	require.Equal(t, fileAsString, string(bodyAsString))
+func TestModelToUrl(t *testing.T) {
 
+	urls, err := modelNameToUrls("ar_JO-kareem-low")
+	require.NoError(t, err)
+	expectedOnnx := "https://huggingface.co/rhasspy/piper-voices/resolve/main/ar/ar_JO/kareem/low/ar_JO-kareem-low.onnx"
+	require.Equal(t, expectedOnnx, urls.OnnxFile)
+
+	expectedJson := "https://huggingface.co/rhasspy/piper-voices/resolve/main/ar/ar_JO/kareem/low/ar_JO-kareem-low.onnx.json"
+	require.Equal(t, expectedJson, urls.JsonConfigFile)
+
+	t.Run("test all voices in voices.json", func(t *testing.T) {
+		data, err := os.ReadFile("testdata/voices.json")
+		require.NoError(t, err)
+		var jsonData map[string]interface{}
+		err = json.Unmarshal(data, &jsonData)
+		require.NoError(t, err)
+		for model := range jsonData {
+			_, err := modelNameToUrls(model)
+			require.NoError(t, err)
+		}
+	})
 }
