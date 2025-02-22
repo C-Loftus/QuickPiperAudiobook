@@ -2,25 +2,30 @@ package piper
 
 import (
 	"QuickPiperAudiobook/internal/lib"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-// Piper has hundreds of pretrained models on the sample Website
-// These are some of the best ones for English. However, as long
-// as you have both the .onnx and .onnx.json files locally, you
-// can use any model you want or even train your own.
-var ModelToURL = map[string]string{
-	"en_US-hfc_male-medium.onnx":              "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/hfc_male/medium/en_US-hfc_male-medium.onnx",
-	"en_US-hfc_female-medium.onnx":            "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/hfc_female/medium/en_US-hfc_female-medium.onnx",
-	"en_US-lessac-medium.onnx":                "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx",
-	"en_GB-northern_english_male-medium.onnx": "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/northern_english_male/medium/en_GB-northern_english_male-medium.onnx",
-	// Below is an example of a non-English model
-	// I happily accept PRs for others here. It is just a bit tedious to enumerate them all
-	// since some do not follow the same pattern.
-	"zh_CN-huayan-medium.onnx": "https://huggingface.co/rhasspy/piper-voices/resolve/main/zh/zh_CN/huayan/medium/zh_CN-huayan-medium.onnx",
+func modelToUrl(modelName string) (interface{}, error) {
+
+	const remoteUrl = "https://huggingface.co/rhasspy/piper-voices/raw/main/voices.json"
+	resp, err := http.Get(remoteUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var data interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, err
+	}
+	
+	for _, voice := range data.(map[string]interface{})["voices"].([]interface{}) {
+
 }
 
 // Try to find the model if it exists and otherwise try to download it

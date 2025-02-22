@@ -1,6 +1,8 @@
 package piper
 
 import (
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -58,4 +60,20 @@ func TestExpandModelPath(t *testing.T) {
 			t.Errorf("Expected %s, got %s, error: %v", modelPathInDir, result, err)
 		}
 	})
+}
+
+// Make sure that the voices.json file is up to date
+func TestVoicesJSONIsUpdated(t *testing.T) {
+	file, err := os.ReadFile("voices.json")
+	require.NoError(t, err)
+	fileAsString := string(file)
+	const remoteUrl = "https://huggingface.co/rhasspy/piper-voices/raw/main/voices.json"
+	resp, err := http.Get(remoteUrl)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	bodyData := resp.Body
+	bodyAsString, err := io.ReadAll(bodyData)
+	require.NoError(t, err)
+	require.Equal(t, fileAsString, string(bodyAsString))
+
 }
