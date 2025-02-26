@@ -30,10 +30,10 @@ Here's the translation with terminology more suitable for a GitHub repository:
    * 示例：`./QuickPiperAudiobook --help`
 ### 非英语/UTF-8 支持
 * 从 [Piper 模型库](https://rhasspy.github.io/piper-samples/)下载您所需语言的模型文件（.onnx 和 .json）
-  * 例如：`pl_PL-gosia-medium.onnx` 及对应的 `pl_PL-gosia-medium.onnx.json`（如需要请重命名）
+  * 例如：`zh_CN-huayan-medium.onnx` 及对应的 `zh_CN-huayan-medium.onnx`（如需要请重命名）
 * 将它们放置在 `~/.config/QuickPiperAudiobook/` 目录中
 * 使用 `--speak-utf-8` 和 `--model=` 参数指定用特定模型处理 UTF-8 字符
-  * 示例：`./QuickPiperAudiobook --speak-utf-8 --model=pl_PL-gosia-medium.onnx MaszynaTuringa_Wikipedia.pdf`
+  * 示例：`./QuickPiperAudiobook --speak-utf-8 --model=zh_CN-huayan-medium.onnx test_chinese_data.pdf`
 > [!提示]  
 > 如果您经常使用某个模型，建议在配置文件中将其设为默认模型
 ### 配置设置
