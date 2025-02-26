@@ -33,7 +33,7 @@
 * 将它们放置在 `~/.config/QuickPiperAudiobook/` 目录中
 * 使用 `--speak-utf-8` 和 `--model=` 参数指定用特定模型处理 UTF-8 字符
   * 示例：`./QuickPiperAudiobook --speak-utf-8 --model=zh_CN-huayan-medium.onnx test_chinese_data.pdf`
-> [!提示]  
+> [!NOTE]  
 > 如果您经常使用某个模型，建议在配置文件中将其设为默认模型
 ### 配置设置
 * 可以在 `~/.config/QuickPiperAudiobook/` 创建配置文件，以避免每次都需要在命令行指定参数
