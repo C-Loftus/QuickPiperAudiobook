@@ -1,8 +1,11 @@
 <h1 align=center>QuickPiperAudiobook</h1>
 
 <p align="center">
-  <a href="./README.md">English</a> |
+  <a href="./README.md">English</a>
+  |
   <b> Polski </b>
+  |
+  <a href="./README_ZH.md">简体中文</a>
 </p>
 
 Stwórz naturalny audiobook dla dowolnej treści tekstowej za pomocą jednego polecenia.
