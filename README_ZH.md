@@ -19,7 +19,7 @@ Here's the translation with terminology more suitable for a GitHub repository:
     * (或通过 `go mod tidy && go build` 从源码构建)
 2. 安装 `ebook-convert` 并确保它在系统 PATH 中（该工具包含在 [Calibre](https://calibre-ebook.com/) 中）
 3. *(可选)* 安装 `ffmpeg` 以支持 MP3 和章节功能
-> [!注意]  
+> [!NOTE]  
 > 无需单独安装 Piper。本程序会自动管理 Piper 及其相关模型
 ## 使用方法
 * 输入本地文件路径或带有正确扩展名的远程 URL
