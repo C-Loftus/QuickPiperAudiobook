@@ -1,4 +1,3 @@
-Here's the translation with terminology more suitable for a GitHub repository:
 
 <h1 align=center>QuickPiperAudiobook</h1>
 <p align="center">
