@@ -1,8 +1,11 @@
 <h1 align=center>QuickPiperAudiobook</h1>
 
 <p align="center">
-  <b> English </b> |
+  <b> English </b> 
+  |
   <a href="./README_PL.md">Polski</a>
+  |
+  <a href="./README_ZH.md">简体中文</a>
 </p>
 
 
