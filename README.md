@@ -69,7 +69,7 @@ chapters: false
 ## Notes
 
 - Piper does not support progress output. Long audiobooks may take a long time to generate since all computation is being done locally. 
-- This repo has only been tested on Linux but can work on MacOS once an upstream bug is fixed with Piper
+- This repo has been tested on Linux but can also work on MacOS once an upstream bug is fixed with Piper
 
 ## Support
 
