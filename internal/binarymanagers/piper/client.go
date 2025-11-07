@@ -11,8 +11,8 @@ import (
 
 	"github.com/charmbracelet/log"
 
-	bin "QuickPiperAudiobook/internal/binarymanagers"
-	"QuickPiperAudiobook/internal/lib"
+	bin "github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers"
+	"github.com/c-loftus/QuickPiperAudiobook/internal/lib"
 )
 
 type PiperClient struct {

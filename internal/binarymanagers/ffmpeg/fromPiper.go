@@ -1,11 +1,12 @@
 package ffmpeg
 
 import (
-	"QuickPiperAudiobook/internal/binarymanagers"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+
+	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers"
 
 	"github.com/charmbracelet/log"
 )

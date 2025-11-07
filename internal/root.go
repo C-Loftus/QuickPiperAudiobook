@@ -1,10 +1,6 @@
 package internal
 
 import (
-	"QuickPiperAudiobook/internal/binarymanagers/ffmpeg"
-	"QuickPiperAudiobook/internal/binarymanagers/piper"
-	"QuickPiperAudiobook/internal/lib"
-	"QuickPiperAudiobook/internal/parsers/epub"
 	"bytes"
 	"errors"
 	"fmt"
@@ -16,11 +12,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/piper"
+	"github.com/c-loftus/QuickPiperAudiobook/internal/lib"
+	"github.com/c-loftus/QuickPiperAudiobook/internal/parsers/epub"
+
+	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/ffmpeg"
+
 	"github.com/briandowns/spinner"
 	log "github.com/charmbracelet/log"
 
-	ebookconvert "QuickPiperAudiobook/internal/binarymanagers/ebookConvert"
-	"QuickPiperAudiobook/internal/binarymanagers/iconv"
+	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/iconv"
+
+	ebookconvert "github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/ebookConvert"
 
 	"github.com/gen2brain/beeep"
 	"golang.org/x/sync/errgroup"

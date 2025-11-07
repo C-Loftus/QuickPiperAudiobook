@@ -1,11 +1,12 @@
 package piper
 
 import (
-	"QuickPiperAudiobook/internal/lib"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/c-loftus/QuickPiperAudiobook/internal/lib"
 )
 
 // Piper has hundreds of pretrained models on the sample Website
