@@ -1,3 +1,6 @@
+# Copyright 2025 Colton Loftus
+# SPDX-License-Identifier: AGPL-3.0-only
+
 # This dockerfile can be used to build a binary for use with the QuickPiperAudiobook command. 
 # You can use it for testing, or other architectures that don't have a piper build.
 # docker build -t quickpiperaudiobook .

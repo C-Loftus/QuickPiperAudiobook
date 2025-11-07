@@ -1,0 +1,36 @@
+# Copyright 2025 Colton Loftus
+# SPDX-License-Identifier: AGPL-3.0-only
+
+minimum_pre_commit_version: "2.9.0"
+ci:
+  autoupdate_schedule: monthly
+repos:
+  - repo: meta
+    hooks:
+      - id: check-useless-excludes
+  - repo: local
+    hooks:
+      - id: forbid-symlinks
+        name: Forbid symlinks
+        entry: Forbid symlinks
+        language: fail
+        types: [symlink]
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: forbid-crlf
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: destroyed-symlinks
+      - id: detect-private-key
+        exclude_types: [svg]
+  - repo: https://github.com/google/addlicense
+    rev: "55a521bf81c24480094950caa3566548fa63875e"
+    hooks:
+      - id: addlicense
+        args: ["-s=only", -l, "AGPL-3.0-only", -c, "Colton Loftus"]
