@@ -19,8 +19,10 @@ Listen to sample output [ here ](./examples/)
 
 ## Installing
 
-1. Grab a prebuilt [release](https://github.com/C-Loftus/QuickPiperAudiobook/releases/)
-    * (Or build from source using `go mod tidy && go build`)
+1. Download the binary via one of the following methods:
+    * A prebuilt [release](https://github.com/C-Loftus/QuickPiperAudiobook/releases/)
+    * `go install github.com/C-Loftus/QuickPiperAudiobook@latest`
+    * (Or build from source using `go build`)
 2. Download `ebook-convert` and make sure it is in your PATH. (This is bundled with [calibre](https://calibre-ebook.com/))
 3. _(Optional)_ Download `ffmpeg` for mp3 and chapter support 
 
