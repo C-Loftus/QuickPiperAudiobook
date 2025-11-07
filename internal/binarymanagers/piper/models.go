@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/C-loftus/QuickPiperAudiobook/internal/lib"
+	"github.com/C-Loftus/QuickPiperAudiobook/internal/lib"
 )
 
 // Piper has hundreds of pretrained models on the sample Website

@@ -1,4 +1,4 @@
-module github.com/C-loftus/QuickPiperAudiobook
+module github.com/C-Loftus/QuickPiperAudiobook
 
 go 1.22.5
 
