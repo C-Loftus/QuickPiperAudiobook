@@ -1,10 +1,11 @@
 package ffmpeg
 
 import (
-	"QuickPiperAudiobook/internal/binarymanagers/piper"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/piper"
 
 	"github.com/stretchr/testify/require"
 )

@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"QuickPiperAudiobook/internal/binarymanagers/piper"
 	"path/filepath"
+
+	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/piper"
 
 	"github.com/spf13/cobra"
 )
