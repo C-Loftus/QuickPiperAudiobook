@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers"
+	"github.com/C-loftus/QuickPiperAudiobook/internal/binarymanagers"
 
 	"github.com/stretchr/testify/require"
 )

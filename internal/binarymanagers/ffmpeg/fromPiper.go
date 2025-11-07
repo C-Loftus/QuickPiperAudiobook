@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers"
+	"github.com/C-loftus/QuickPiperAudiobook/internal/binarymanagers"
 
 	"github.com/charmbracelet/log"
 )

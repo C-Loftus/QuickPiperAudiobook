@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/c-loftus/QuickPiperAudiobook/cmd"
+	"github.com/C-loftus/QuickPiperAudiobook/cmd"
 )
 
 func main() {

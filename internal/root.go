@@ -12,18 +12,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/piper"
-	"github.com/c-loftus/QuickPiperAudiobook/internal/lib"
-	"github.com/c-loftus/QuickPiperAudiobook/internal/parsers/epub"
+	"github.com/C-loftus/QuickPiperAudiobook/internal/binarymanagers/piper"
+	"github.com/C-loftus/QuickPiperAudiobook/internal/lib"
+	"github.com/C-loftus/QuickPiperAudiobook/internal/parsers/epub"
 
-	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/ffmpeg"
+	"github.com/C-loftus/QuickPiperAudiobook/internal/binarymanagers/ffmpeg"
 
 	"github.com/briandowns/spinner"
 	log "github.com/charmbracelet/log"
 
-	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/iconv"
+	"github.com/C-loftus/QuickPiperAudiobook/internal/binarymanagers/iconv"
 
-	ebookconvert "github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/ebookConvert"
+	ebookconvert "github.com/C-loftus/QuickPiperAudiobook/internal/binarymanagers/ebookConvert"
 
 	"github.com/gen2brain/beeep"
 	"golang.org/x/sync/errgroup"

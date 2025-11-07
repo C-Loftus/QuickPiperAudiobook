@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/c-loftus/QuickPiperAudiobook/internal"
+	"github.com/C-loftus/QuickPiperAudiobook/internal"
 )
 
 var config *viper.Viper
