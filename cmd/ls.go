@@ -3,7 +3,7 @@ package cmd
 import (
 	"path/filepath"
 
-	"github.com/C-loftus/QuickPiperAudiobook/internal/binarymanagers/piper"
+	"github.com/C-Loftus/QuickPiperAudiobook/internal/binarymanagers/piper"
 
 	"github.com/spf13/cobra"
 )
