@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers/piper"
+	"github.com/C-loftus/QuickPiperAudiobook/internal/binarymanagers/piper"
 
 	"github.com/stretchr/testify/require"
 )

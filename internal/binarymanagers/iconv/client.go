@@ -5,7 +5,7 @@ import (
 	"io"
 	"os/exec"
 
-	"github.com/c-loftus/QuickPiperAudiobook/internal/binarymanagers"
+	"github.com/C-loftus/QuickPiperAudiobook/internal/binarymanagers"
 )
 
 // Remove diacritics from text so that an english voice can read it
